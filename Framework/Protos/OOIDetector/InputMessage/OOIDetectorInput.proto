@@ -1,0 +1,30 @@
+package Magic.OOIDetector;
+
+message OOIDetectorInput {
+	message Robotpose {
+		required double x = 1;
+		required double y = 2;
+		required double z = 3;
+		required double roll = 4;
+		required double pitch = 5;
+		required double yaw = 6;
+		required double timestamp = 7;
+
+		//Note: this is a flattening of a 6x6 array
+		repeated double covariance = 8;
+	}
+	
+	message ThreeDCoord {
+		required double x = 1;
+		required double y = 2;
+		required double z = 3;
+	}
+	
+	message Point {
+		required ThreeDCoord globalcoord = 1;
+		required ThreeDCoord robotcoord = 2;
+	}
+
+	required Robotpose pose = 1;
+	repeated Point points = 2;
+}

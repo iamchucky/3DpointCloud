@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProxyComponents", "ProxyComponents.csproj", "{95C39231-C272-47F0-AC9F-94E44F08122E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Z:\MAGIC\Framework\Common\Common.csproj", "{A23F8E98-E87D-46F3-B319-F1F0E11325F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network", "Z:\MAGIC\Framework\Network\Network.csproj", "{7A311186-B9FC-4EDA-8418-82A58203461D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SickInterface", "Z:\MAGIC\Framework\SickInterface\SickInterface.csproj", "{9998F17E-A507-4CB2-AAAA-E00CF63DFD0F}"
+EndProject
+Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{95C39231-C272-47F0-AC9F-94E44F08122E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95C39231-C272-47F0-AC9F-94E44F08122E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95C39231-C272-47F0-AC9F-94E44F08122E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95C39231-C272-47F0-AC9F-94E44F08122E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A23F8E98-E87D-46F3-B319-F1F0E11325F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A23F8E98-E87D-46F3-B319-F1F0E11325F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A23F8E98-E87D-46F3-B319-F1F0E11325F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A23F8E98-E87D-46F3-B319-F1F0E11325F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A311186-B9FC-4EDA-8418-82A58203461D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A311186-B9FC-4EDA-8418-82A58203461D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A311186-B9FC-4EDA-8418-82A58203461D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A311186-B9FC-4EDA-8418-82A58203461D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9998F17E-A507-4CB2-AAAA-E00CF63DFD0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9998F17E-A507-4CB2-AAAA-E00CF63DFD0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9998F17E-A507-4CB2-AAAA-E00CF63DFD0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9998F17E-A507-4CB2-AAAA-E00CF63DFD0F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

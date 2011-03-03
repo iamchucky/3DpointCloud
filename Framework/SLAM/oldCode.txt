@@ -1,0 +1,471 @@
+﻿
+						Console.WriteLine("k = " + k);
+						Console.WriteLine("Scan: " + currentScan.Timestamp + " pose: " + viconPose.timestamp);		
+		
+		
+					/*
+						// dot product feature extractor:
+						// ------------------------------
+						//lidar index range: 0:181
+						slamFeatures.Clear();
+						int span = 1;
+						for (int i = span + 1; i < currentScan.Points.Count - span; i++)
+						{
+								Vector2 testPointR = new Vector2(); // right test point
+								Vector2  testPoint = new Vector2();  // test point
+								Vector2 testPointL = new Vector2(); // left test point
+								Vector2 aTest = new Vector2();
+								Vector2 bTest = new Vector2();
+
+								testPointR = currentScan.Points[i + span].RThetaPoint.ToVector2();
+								 testPoint = currentScan.Points[i].RThetaPoint.ToVector2();
+								testPointL = currentScan.Points[i - span].RThetaPoint.ToVector2();
+
+								if (currentScan.Points[i + span].RThetaPoint.R < 30 || currentScan.Points[i - span].RThetaPoint.R < 30)
+								{
+										aTest = testPointR - testPoint;
+										bTest = testPointL - testPoint;
+
+										double angleSpec = 120.0 * Math.PI / 180.0;
+										if (Math.Acos(aTest.Dot(bTest)) / ((aTest.Length) * (bTest.Length)) < angleSpec)
+										{
+												slamFeatures.Add(testPoint);
+										}
+								}
+						}
+					 */
+
+					/*
+					// gradient test v1.0:
+					// -------------------
+					//lidar index range: 0:181
+					slamFeatures.Clear();
+					for (int i = 0; i < currentScan.Points.Count - 1; i++)
+					{
+							double l = (currentScan.Points[i].RThetaPoint.ToVector2() - currentScan.Points[i + 1].RThetaPoint.ToVector2()).Length;
+							if (l > 0.2)
+							{
+									slamFeatures.Add(currentScan.Points[i].RThetaPoint.ToVector2());
+									slamFeatures.Add(currentScan.Points[i + 1].RThetaPoint.ToVector2());
+							}
+					}
+					*/
+					
+					
+							// gradient test v1.1:
+							// -------------------
+							//lidar index range: 0:181
+							slamFeatures.Clear();
+							for (int i = 0; i < currentScan.Points.Count - 1; i++)
+							{
+								Vector2 testPoint1 = new Vector2();
+								Vector2 testPoint2 = new Vector2();
+								testPoint1 = currentScan.Points[i].RThetaPoint.ToVector2();
+								testPoint2 = currentScan.Points[i + 1].RThetaPoint.ToVector2();
+								double l = (testPoint1 - testPoint2).Length;
+								//if (l > 0.2 && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+								if (currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+								{
+									slamFeatures.Add(testPoint1);
+									slamFeatures.Add(testPoint2);
+								}
+							}
+							
+							
+							{
+								Vector2 testPoint = new Vector2();
+								testPoint = currentScan.Points[i].RThetaPoint.ToVector2();
+								double xTest = Math.Cos(viconPose.yaw) * testPoint.X - Math.Sin(viconPose.yaw) * testPoint.Y + viconPose.x;
+								double yTest = Math.Sin(viconPose.yaw) * testPoint.X + Math.Cos(viconPose.yaw) * testPoint.Y + viconPose.y;
+								Vector2 testPt = new Vector2(xTest, yTest);
+
+								double epsilon = 0.1;
+
+								Vector2 beacon1 = new Vector2(8.666212, 1.28477);
+								if ((testPt - beacon1).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon2 = new Vector2(7.7902, 1.5952);
+								if ((testPt - beacon2).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon3 = new Vector2(6.7999, 1.3457);
+								if ((testPt - beacon3).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon4 = new Vector2(6.6529, -0.6944);
+								if ((testPt - beacon4).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon5 = new Vector2(5.3595, 1.3504);
+								if ((testPt - beacon5).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon6 = new Vector2(5.3723, -0.8577);
+								if ((testPt - beacon6).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon7 = new Vector2(3.8055, 1.3262);
+								if ((testPt - beacon7).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon8 = new Vector2(3.5776, -1.8944);
+								if ((testPt - beacon8).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon9 = new Vector2(2.1367, 1.6243);
+								if ((testPt - beacon9).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon10 = new Vector2(2.8203, -0.4091);
+								if ((testPt - beacon10).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon11 = new Vector2(0.6258, 0.1228);
+								if ((testPt - beacon11).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon12 = new Vector2(-1.2457, 1.5374);
+								if ((testPt - beacon12).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+
+								Vector2 beacon13 = new Vector2(-1.02815, -0.763274);
+								if ((testPt - beacon13).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30)
+									slamFeatures.Add(testPoint);
+							}
+							
+							// beacons and correspondences:
+							// ----------------------------
+							slamFeatures.Clear();
+							double epsilon = 0.075;
+							bool beacon1Obsv = false;
+							bool beacon2Obsv = false;
+							bool beacon3Obsv = false;
+							bool beacon4Obsv = false;
+							bool beacon5Obsv = false;
+							bool beacon6Obsv = false;
+							bool beacon7Obsv = false;
+							bool beacon8Obsv = false;
+							bool beacon9Obsv = false;
+							bool beacon10Obsv = false;
+							bool beacon11Obsv = false;
+							bool beacon12Obsv = false;
+							bool beacon13Obsv = false;
+							bool beacon14Obsv = false;
+							bool beacon15Obsv = false;
+							bool beacon16Obsv = false;
+							bool beacon17Obsv = false;
+							for (int i = 0; i < currentScan.Points.Count - 1; i++)
+							{
+								Vector2 testPoint = new Vector2();
+								testPoint = currentScan.Points[i].RThetaPoint.ToVector2();
+								double xTest = Math.Cos(viconPose.yaw) * testPoint.X - Math.Sin(viconPose.yaw) * testPoint.Y + viconPose.x;
+								double yTest = Math.Sin(viconPose.yaw) * testPoint.X + Math.Cos(viconPose.yaw) * testPoint.Y + viconPose.y;
+								Vector2 testPt = new Vector2(xTest, yTest);
+
+								Vector2 beacon1 = new Vector2(8.468107, 1.34969);
+								if ((testPt - beacon1).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon1Obsv == false)
+								{ 
+									slamFeatures.Add(testPoint);
+									beacon1Obsv = true;
+								}
+
+								Vector2 beacon2 = new Vector2(7.6801, 1.8065);
+								if ((testPt - beacon2).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon2Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon2Obsv = true;
+								}
+
+								Vector2 beacon3 = new Vector2(6.912014, 0.94246);
+								if ((testPt - beacon3).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon3Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon3Obsv = true;
+								}
+
+								Vector2 beacon4 = new Vector2(6.84558, -0.9784);
+								if ((testPt - beacon4).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon4Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon4Obsv = true;
+								}
+
+								/*Vector2 beacon5 = new Vector2(5.623, 2.0807);
+								if ((testPt - beacon5).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon5Obsv == false)
+								{ 
+									slamFeatures.Add(testPoint);
+									beacon5Obsv = true;
+								}*/
+
+								Vector2 beacon6 = new Vector2(5.593523, 0.883335);
+								if ((testPt - beacon6).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon6Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon6Obsv = true;
+								}
+
+								Vector2 beacon7 = new Vector2(5.5714, -0.8367);
+								if ((testPt - beacon7).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon7Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon7Obsv = true;
+								}
+
+								/*Vector2 beacon8 = new Vector2(5.5059, -2.0374);
+								if ((testPt - beacon8).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon8Obsv == false)
+								{ 
+									slamFeatures.Add(testPoint);
+									beacon8Obsv = true;
+								}*/
+
+								/*Vector2 beacon9 = new Vector2(5.4029, 2.08713);
+								if ((testPt - beacon9).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon9Obsv == false)
+								{ 
+									slamFeatures.Add(testPoint);
+									beacon9Obsv = true;
+								}*/
+
+								/*Vector2 beacon10 = new Vector2(5.41241, -2.04183);
+								if ((testPt - beacon10).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon10Obsv == false)
+								{ 
+									slamFeatures.Add(testPoint);
+									beacon10Obsv = true;
+								}*/
+
+								Vector2 beacon11 = new Vector2(4.07066, 1.416271);
+								if ((testPt - beacon11).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon11Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon11Obsv = true;
+								}
+
+								Vector2 beacon12 = new Vector2(3.4745, -1.24266);
+								if ((testPt - beacon12).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon12Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon12Obsv = true;
+								}
+
+								Vector2 beacon13 = new Vector2(2.4828, 0.9051);
+								if ((testPt - beacon13).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon13Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon13Obsv = true;
+								}
+
+								Vector2 beacon14 = new Vector2(1.437, -0.9297);
+								if ((testPt - beacon14).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon14Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon14Obsv = true;
+								}
+
+								Vector2 beacon15 = new Vector2(0.315235, 1.027629);
+								if ((testPt - beacon15).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon15Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon15Obsv = true;
+								}
+
+								Vector2 beacon16 = new Vector2(-1.229, 1.504);
+								if ((testPt - beacon16).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon16Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon16Obsv = true;
+								}
+
+								Vector2 beacon17 = new Vector2(-1.063583, -1.07517);
+								if ((testPt - beacon17).Length < epsilon && currentScan.Points[i].RThetaPoint.R < 30 && currentScan.Points[i + 1].RThetaPoint.R < 30 && beacon17Obsv == false)
+								{
+									slamFeatures.Add(testPoint);
+									beacon17Obsv = true;
+								}
+							}
+							
+							
+							#region pair example
+							//Pair<double, double> p = new Pair<double, double>(1, 2);
+							//p.Left;
+							//p.Right;
+							#endregion
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+									{
+										if (jObsv.Count == 0)
+											jObsv.Add(iObsv[i]);
+										else
+										{
+											if (iObsv[i].X != jObsv[jObsv.Count - 1].X)
+												jObsv.Add(iObsv[i]);
+										}
+									}
+									
+									
+									
+									
+									
+									
+									
+									
+
+							#region redundancy check 1
+							/*
+							List<Vector2> jObsv = new List<Vector2>();
+							if (iObsv.Count > 0)
+							{
+								for (int i = 0; i < iObsv.Count - 1; i++)
+								{
+									if (i == 0)
+									{
+										if (iObsv[i].X == iObsv[i + 1].X)
+										{
+											if (cLP[(int)(iObsv[i].X), (int)(iObsv[i].Y)] <
+												cLP[(int)(iObsv[i + 1].X), (int)(iObsv[i + 1].Y)])
+												jObsv.Add(iObsv[i]);
+											else
+												jObsv.Add(iObsv[i + 1]);
+										}
+										else
+											jObsv.Add(iObsv[i]);
+										//i = i + 1;
+									}
+									else
+									{
+										if (iObsv[i].X == iObsv[i + 1].X && iObsv[i - 1].X == iObsv[i].X)
+										{
+											if (cLP[(int)(iObsv[i].X), (int)(iObsv[i].Y)] <
+												cLP[(int)(iObsv[i + 1].X), (int)(iObsv[i + 1].Y)])
+												jObsv.Add(iObsv[i]);
+											else
+												jObsv.Add(iObsv[i + 1]);
+										}
+										else
+											jObsv.Add(iObsv[i]);
+										//i = i + 1;
+									}
+								}
+							}
+							numObsv = jObsv.Count;
+							iObsv = new List<Vector2>(jObsv);
+							#endregion
+
+							#region redundancy check 2
+							jObsv = new List<Vector2>();
+							if (iObsv.Count > 0)
+							{
+								for (int i = 0; i < iObsv.Count - 1; i++)
+								{
+									if (i == 0)
+									{
+										if (iObsv[i].Y == iObsv[i + 1].Y)
+										{
+											if (cLP[(int)(iObsv[i].X), (int)(iObsv[i].Y)] <
+												cLP[(int)(iObsv[i + 1].X), (int)(iObsv[i + 1].Y)])
+												jObsv.Add(iObsv[i]);
+											else
+												jObsv.Add(iObsv[i + 1]);
+										}
+										else
+											jObsv.Add(iObsv[i]);
+										//i = i + 1;
+									}
+									else
+									{
+										if (iObsv[i].Y == iObsv[i + 1].Y && iObsv[i - 1].Y == iObsv[i].Y)
+										{
+											if (cLP[(int)(iObsv[i].X), (int)(iObsv[i].Y)] <
+												cLP[(int)(iObsv[i + 1].X), (int)(iObsv[i + 1].Y)])
+												jObsv.Add(iObsv[i]);
+											else
+												jObsv.Add(iObsv[i + 1]);
+										}
+										else
+											jObsv.Add(iObsv[i]);
+										//i = i + 1;
+									}
+								}
+							}
+							numObsv = jObsv.Count;
+							iObsv = new List<Vector2>(jObsv);
+							*/
+							#endregion
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+								for (int j = 1; j < jObsv.Count; j++)
+								{
+									if (jObsv[j].X == jObsv[j - 1].X)
+									{
+										if (jObsv[j].Z > jObsv[j - 1].Z)
+											jObsv[j - 1] = new Vector3(jObsv[j - 1].X, jObsv[j - 1].Y, 0);
+										else
+											jObsv[j] = new Vector3(jObsv[j].X, jObsv[j].Y, 0);
+										nc = nc + 1;
+									}
+								}
+								for (int j = 1; j < jObsv.Count; j++)
+								{
+									if (jObsv[j].Y == jObsv[j - 1].Y)
+									{
+										if (jObsv[j].Z > jObsv[j - 1].Z)
+											jObsv[j - 1] = new Vector3(jObsv[j - 1].X, jObsv[j - 1].Y, 0);
+										else
+											jObsv[j] = new Vector3(jObsv[j].X, jObsv[j].Y, 0);
+										nc = nc + 1;
+									}
+								}
+								for (int j = 1; j < jObsv.Count; j++)
+								{
+									if (jObsv[j].Z != 0)
+									{
+										iObsv.Add(new Vector2(jObsv[j].X, jObsv[j].Y));
+										obsvFeatureList.Add(rotateTranslate(currentScanXY[ibook[(int)(jObsv[j].X)]], xhatvPose)); // dev-only
+									}
+								}
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+							
+using System;	
+using System.IO;
+using System.Text;
+
+							FileStream fs = new FileStream("c:\\Variables.txt", FileMode.Append, FileAccess.Write, FileShare.Write);
+							fs.Close();
+							StreamWriter sw = new StreamWriter("c:\\Variables.txt", true, Encoding.ASCII);
+							string NextLine = "This is the appended line.";
+							sw.Write(NextLine);
+							sw.Close();

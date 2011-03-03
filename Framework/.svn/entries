@@ -1,0 +1,187 @@
+10
+
+dir
+4998
+http://asl.mae.cornell.edu/svn/repos/MAGIC/Framework
+http://asl.mae.cornell.edu/svn/repos
+
+
+
+2011-02-21T16:14:06.523781Z
+4967
+djl59
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+96107233-09da-474c-ba3f-995ae5c3fbc0
+
+STCPathFollower
+dir
+
+SimplePathFollower
+dir
+
+GUI
+dir
+
+Protos
+dir
+
+ProxyComponents
+dir
+
+Timing
+dir
+
+Camera
+dir
+
+Common
+dir
+
+LidarPolyExtractor
+dir
+
+UnsafeMath
+dir
+
+LidarProxy
+dir
+
+DStarPlanner
+dir
+
+GlobalObstaclesMap
+dir
+
+Joystick
+dir
+
+Segway
+dir
+
+Pioneer
+dir
+
+SickInterface
+dir
+
+GapShooter
+dir
+
+DynamixelInterface
+dir
+
+MonteCarloFollower
+dir
+
+ViconPoseProvider
+dir
+
+TwoWheelRobotStateProvider
+dir
+
+LidarHeightJumpExtraction
+dir
+
+OdometryPoseEstimator
+dir
+
+CommandQueue
+dir
+
+LittleLaser
+dir
+
+FeatureDetector
+dir
+
+RRTPlanner
+dir
+
+RRTControlPlanner
+dir
+
+Network
+dir
+
+OccupancyGrid
+dir
+
+LidarTargetDetector
+dir
+
+SLAM
+dir
+
+Poly2OcGrid
+dir
+
+OcGrid2Poly
+dir
+
+ViconInterface
+dir
+
+MessageExample
+dir
+
+TSIPInterface
+dir
+
+GapDetector
+dir
+
+UDPCamera
+dir
+
+Odometry
+dir
+
+LinearProgram
+dir
+
+Utility
+dir
+
+GaussianMixtureMapping
+dir
+
+GlobalGaussianMixMap
+dir
+
+TargetListImages
+dir
+
+TargetTracking
+dir
+
+VFHPathFollower
+dir
+
+IMUInterface
+dir
+
+PathSmoother
+dir
+
+HokuyoURGInterface
+dir
+
+Rendering
+dir
+
+SeptentrioInterface
+dir
+

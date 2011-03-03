@@ -1,0 +1,7 @@
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Protos\OOIDetector\bin\Debug\OOIDetector.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Protos\OOIDetector\bin\Debug\OOIDetector.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Protos\OOIDetector\bin\Debug\protobuf-net.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Protos\OOIDetector\bin\Debug\protobuf-net.xml
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Protos\OOIDetector\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Protos\OOIDetector\obj\Debug\OOIDetector.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Protos\OOIDetector\obj\Debug\OOIDetector.pdb

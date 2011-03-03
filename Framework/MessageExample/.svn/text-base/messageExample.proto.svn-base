@@ -1,0 +1,20 @@
+package Magic.Sensors;
+
+message ExampleMessage {
+  required string robot = 1;
+  required int32 id = 2;
+  optional string name = 3;
+
+  enum SensorType {
+    LIDAR = 0;
+    RADAR = 1;
+    GPS = 2;
+  }
+
+  message StatusCode {
+    required string number = 1;
+    optional SensorType type = 2 [default = LIDAR];
+  }
+
+  repeated StatusCode codes = 4;
+}

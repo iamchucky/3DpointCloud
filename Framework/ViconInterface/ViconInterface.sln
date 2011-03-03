@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViconInterface", "ViconInterface.csproj", "{93430721-82B9-4830-8E1E-0A1F981C4D14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "..\Common\Common.csproj", "{A23F8E98-E87D-46F3-B319-F1F0E11325F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network", "..\Network\Network.csproj", "{7A311186-B9FC-4EDA-8418-82A58203461D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93430721-82B9-4830-8E1E-0A1F981C4D14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93430721-82B9-4830-8E1E-0A1F981C4D14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93430721-82B9-4830-8E1E-0A1F981C4D14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93430721-82B9-4830-8E1E-0A1F981C4D14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A23F8E98-E87D-46F3-B319-F1F0E11325F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A23F8E98-E87D-46F3-B319-F1F0E11325F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A23F8E98-E87D-46F3-B319-F1F0E11325F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A23F8E98-E87D-46F3-B319-F1F0E11325F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A311186-B9FC-4EDA-8418-82A58203461D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A311186-B9FC-4EDA-8418-82A58203461D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A311186-B9FC-4EDA-8418-82A58203461D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A311186-B9FC-4EDA-8418-82A58203461D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

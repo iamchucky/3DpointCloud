@@ -1,0 +1,15 @@
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\RobotDriveControl.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\RobotDriveControl.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\Magic.Common.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\Magic.Network.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\protobuf-net.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\Magic.Network.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\protobuf-net.xml
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\bin\Debug\Magic.Common.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\obj\Debug\RobotDriveControl.Properties.Resources.resources
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\obj\Debug\RobotDriveControl.RobotDriveControl.resources
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\obj\Debug\RobotDriveControl.csproj.GenerateResource.Cache
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\obj\Debug\RobotDriveControl.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\GUI\RobotDriveControl\obj\Debug\RobotDriveControl.pdb

@@ -1,0 +1,12 @@
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\UnsafeMath.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\UnsafeMath.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\Magic.Common.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\Magic.Network.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\protobuf-net.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\Magic.Network.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\protobuf-net.xml
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\bin\Debug\Magic.Common.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\obj\Debug\UnsafeMath.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\UnsafeMath\obj\Debug\UnsafeMath.pdb

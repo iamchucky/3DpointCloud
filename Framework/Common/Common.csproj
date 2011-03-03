@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A23F8E98-E87D-46F3-B319-F1F0E11325F5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Magic.Common</RootNamespace>
+    <AssemblyName>Magic.Common</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Algorithm\KDTree\HPoint.cs" />
+    <Compile Include="Algorithm\KDTree\HRect.cs" />
+    <Compile Include="Algorithm\KDTree\KDTree.cs" />
+    <Compile Include="Algorithm\KDTree\KeyDuplicateException.cs" />
+    <Compile Include="Algorithm\KDTree\KeyMissingException.cs" />
+    <Compile Include="Algorithm\KDTree\KeySizeException.cs" />
+    <Compile Include="Algorithm\KDTree\NearestNeighborList.cs" />
+    <Compile Include="Algorithm\KDTree\PriorityQueue.cs" />
+    <Compile Include="MeasurementQueue.cs" />
+    <Compile Include="Messages\BlastAreasMessage.cs" />
+    <Compile Include="Messages\ClearTargetListMessage.cs" />
+    <Compile Include="Messages\GlobalObstaclesMessage.cs" />
+    <Compile Include="Messages\HeightFeatureMessage.cs" />
+    <Compile Include="Messages\IMUDataMessage.cs" />
+    <Compile Include="Messages\FilterStateMessage.cs" />
+    <Compile Include="Messages\LidarFilterPackageMessage.cs" />
+    <Compile Include="Messages\LidarPoseTargetMessage.cs" />
+    <Compile Include="Messages\NeutralizationMessage.cs" />
+    <Compile Include="Messages\NeutralizeWithLaserMessage.cs" />
+    <Compile Include="Messages\RobotCommandMessage.cs" />
+    <Compile Include="Messages\RobotSparsePathMessage.cs" />
+    <Compile Include="Messages\SetRobotModeMessage.cs" />
+    <Compile Include="Messages\SLAMEstimateMessage.cs" />
+    <Compile Include="Messages\TargetList2CentralNodeMessage.cs" />
+    <Compile Include="Messages\TargetListMessage.cs" />
+    <Compile Include="Messages\TargetListNoImageMessage.cs" />
+    <Compile Include="Messages\TargetListWithImageMessage.cs" />
+    <Compile Include="Messages\TargetMessage.cs" />
+    <Compile Include="Messages\TargetQueryMessage.cs" />
+    <Compile Include="Messages\HRIRobotCommandMessage.cs" />
+    <Compile Include="Messages\UnconfirmedTargetNumberMessage.cs" />
+    <Compile Include="PoseFilterState.cs" />
+    <Compile Include="DataInterfaces\IFeatureMap.cs" />
+    <Compile Include="DataInterfaces\IOccupancyGrid2D.cs" />
+    <Compile Include="DataInterfaces\IPointCloud.cs" />
+    <Compile Include="Algorithm\DisjointSet.cs" />
+    <Compile Include="DataInterfaces\ITimeComparable.cs" />
+    <Compile Include="DataInterfaces\ITimestampedEventQueueItem.cs" />
+    <Compile Include="DataStructures\LatestSensorQueue.cs" />
+    <Compile Include="DataStructures\RelativePoseQueue.cs" />
+    <Compile Include="DataStructures\SynchronizedEventQueue.cs" />
+    <Compile Include="DataStructures\SynchonizedEventQueuePQ.cs" />
+    <Compile Include="DataStructures\ComplexSubtree.cs" />
+    <Compile Include="DataStructures\ComplexTree.cs" />
+    <Compile Include="DataStructures\ComplexTreeNode.cs" />
+    <Compile Include="DataStructures\ComplexTreeNodeList.cs" />
+    <Compile Include="DataStructures\Enums.cs" />
+    <Compile Include="DataStructures\SynchronizedEventQueueCQ.cs" />
+    <Compile Include="Messages\ConfirmOOIMessage.cs" />
+    <Compile Include="Messages\GaussianMixMapMessage.cs" />
+    <Compile Include="Messages\LidarPosePackageMessage.cs" />
+    <Compile Include="Messages\PlannerStatusMessage.cs" />
+    <Compile Include="Messages\PossibleOOIMessage.cs" />
+    <Compile Include="Messages\RobotStateMessage.cs" />
+    <Compile Include="Messages\SensorPoseMessage.cs" />
+    <Compile Include="Messages\TeleopMessage.cs" />
+    <Compile Include="PoseInterpolator.cs" />
+    <Compile Include="PriorityQueue.cs" />
+    <Compile Include="HRIPDF.cs" />
+    <Compile Include="IAsPoint.cs" />
+    <Compile Include="DataStructures\SimpleSubtree.cs" />
+    <Compile Include="DataStructures\SimpleTree.cs" />
+    <Compile Include="DataStructures\SimpleTreeNode.cs" />
+    <Compile Include="DataStructures\SimpleTreeNodeList.cs" />
+    <Compile Include="EarthModel\Geocentric.cs" />
+    <Compile Include="EarthModel\PlanarProjection.cs" />
+    <Compile Include="EarthModel\TransverseMercator.cs" />
+    <Compile Include="EarthModel\UTM.cs" />
+    <Compile Include="EarthModel\WGS84.cs" />
+    <Compile Include="ITreeNode.cs" />
+    <Compile Include="LoggingClient.cs" />
+    <Compile Include="Messages\HRIPDFMessage.cs" />
+    <Compile Include="Messages\PDFMessage.cs" />
+    <Compile Include="Messages\WaypointMessage.cs" />
+    <Compile Include="Path\Hardware\IWifi.cs" />
+    <Compile Include="IDeepCopyable.cs" />
+    <Compile Include="Algorithm\IGrid.cs" />
+    <Compile Include="Sensors\IHealth.cs" />
+    <Compile Include="Path\Hardware\IGimbal.cs" />
+    <Compile Include="Path\Hardware\IHostComputer.cs" />
+    <Compile Include="ILoggable.cs" />
+    <Compile Include="IPathPlanner.cs" />
+    <Compile Include="LLACoord.cs" />
+    <Compile Include="Math\AdaptiveGuassianQuad.cs" />
+    <Compile Include="Math\CholeskyDecomposition.cs" />
+    <Compile Include="Math\CoordinateMode.cs" />
+    <Compile Include="Math\IVector3Transformer.cs" />
+    <Compile Include="Math\Vector2.cs" />
+    <Compile Include="Math\EigenvalueDecomposition.cs" />
+    <Compile Include="Math\Error.cs" />
+    <Compile Include="Math\IntegrationRule.cs" />
+    <Compile Include="Math\IntegrationWorkspace.cs" />
+    <Compile Include="Math\IVector2Transformer.cs" />
+    <Compile Include="Math\LuDecomposition.cs" />
+    <Compile Include="Math\Matrix.cs" />
+    <Compile Include="Math\Matrix2.cs" />
+    <Compile Include="Math\Matrix3.cs" />
+    <Compile Include="Math\Matrix4.cs" />
+    <Compile Include="Math\QK15.cs" />
+    <Compile Include="Math\QK21.cs" />
+    <Compile Include="Math\QK31.cs" />
+    <Compile Include="Math\QK41.cs" />
+    <Compile Include="Math\QK51.cs" />
+    <Compile Include="Math\QK61.cs" />
+    <Compile Include="Math\QrDecomposition.cs" />
+    <Compile Include="Math\QuadConst.cs" />
+    <Compile Include="Math\QuadFunction.cs" />
+    <Compile Include="Math\QuadKronrod.cs" />
+    <Compile Include="Math\SingularValueDecomposition.cs" />
+    <Compile Include="Math\Vector3.cs" />
+    <Compile Include="Math\Vector4.cs" />
+    <Compile Include="Messages\EstopMessage.cs" />
+    <Compile Include="Messages\IRobotMessage.cs" />
+    <Compile Include="Messages\LidarScanMessage.cs" />
+    <Compile Include="Messages\ObstaclesMessage.cs" />
+    <Compile Include="Messages\OccupancyGridMessage.cs" />
+    <Compile Include="Messages\PingMessage.cs" />
+    <Compile Include="Messages\RobotPathMessage.cs" />
+    <Compile Include="Messages\RobotPoseMessage.cs" />
+    <Compile Include="Algorithm\MSTSegmentation.cs" />
+    <Compile Include="Path\BezierPathSegment.cs" />
+    <Compile Include="Path\CirclePathSegment.cs" />
+    <Compile Include="Path\IPath.cs" />
+    <Compile Include="Path\IPathSegment.cs" />
+    <Compile Include="Path\ISpeedPathSegment.cs" />
+    <Compile Include="Path\Path.cs" />
+    <Compile Include="Path\PathUtils.cs" />
+    <Compile Include="Path\PointOnPath.cs" />
+    <Compile Include="Path\PlanningWaypoint.cs" />
+    <Compile Include="Pose.cs" />
+    <Compile Include="RobotState.cs" />
+    <Compile Include="Robots\IRobot.cs" />
+    <Compile Include="Robots\IRobotBicycle.cs" />
+    <Compile Include="Robots\IRobotTwoWheel.cs" />
+    <Compile Include="Robots\RobotTwoWheelState.cs" />
+    <Compile Include="Robots\RobotTwoWheelModel.cs" />
+    <Compile Include="SensorPose.cs" />
+    <Compile Include="Sensors\ICamera.cs" />
+    <Compile Include="Sensors\IGPS.cs" />
+    <Compile Include="Sensors\IIMU.cs" />
+    <Compile Include="Sensors\IInertialNavigationSystem.cs" />
+    <Compile Include="Sensors\ILidar2D.cs" />
+    <Compile Include="Sensors\ILidar3D.cs" />
+    <Compile Include="Sensors\ILidarPoint.cs" />
+    <Compile Include="Sensors\ITimingProvider.cs" />
+    <Compile Include="Sensors\IOccupancyGrid2DProcessor.cs" />
+    <Compile Include="Sensors\IOdometryProcessor.cs" />
+    <Compile Include="Sensors\ISensor.cs" />
+    <Compile Include="Sensors\Lidar2DPoint.cs" />
+    <Compile Include="Sensors\ILidarScan.cs" />
+    <Compile Include="Sensors\IPoseProvider.cs" />
+    <Compile Include="RobotPose.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RThetaCoordinate.cs" />
+    <Compile Include="SensorLocation.cs" />
+    <Compile Include="Sensors\RobotImage.cs" />
+    <Compile Include="Shapes\Brent.cs" />
+    <Compile Include="Shapes\Circle.cs" />
+    <Compile Include="Shapes\CircleSegment.cs" />
+    <Compile Include="Shapes\CubicBezier.cs" />
+    <Compile Include="Shapes\Line.cs" />
+    <Compile Include="Shapes\LineList.cs" />
+    <Compile Include="Shapes\LinePath.cs" />
+    <Compile Include="Shapes\LinePathSegment.cs" />
+    <Compile Include="Shapes\LineSegment.cs" />
+    <Compile Include="Shapes\Polygon.cs" />
+    <Compile Include="Shapes\QuarticBezier.cs" />
+    <Compile Include="Shapes\Rect.cs" />
+    <Compile Include="Shapes\RootFunction.cs" />
+    <Compile Include="Shapes\SmoothingSpline.cs" />
+    <Compile Include="Sim\SimIMU.cs" />
+    <Compile Include="Sim\SimLidar.cs" />
+    <Compile Include="Sim\SimLidarPoint.cs" />
+    <Compile Include="Sim\SimMessage.cs" />
+    <Compile Include="Sim\SimScan.cs" />
+    <Compile Include="Sim\SimSegwayStatus.cs" />
+    <Compile Include="TimestampedEventArgs.cs" />
+    <Compile Include="Utility\BigEndianBinaryReader.cs" />
+    <Compile Include="Utility\BigEndianBinaryWriter.cs" />
+    <Compile Include="Utility\BlockageTester.cs" />
+    <Compile Include="Utility\Endian.cs" />
+    <Compile Include="Utility\HighResDateTime.cs" />
+    <Compile Include="Utility\MathUtil.cs" />
+    <Compile Include="Utility\MMWaitableTimer.cs" />
+    <Compile Include="Utility\MultiEnumerator.cs" />
+    <Compile Include="Utility\NormalRandom.cs" />
+    <Compile Include="Utility\Pair.cs" />
+    <Compile Include="Utility\RollingQueue.cs" />
+    <Compile Include="Utility\TimeWindowQueue.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Network\Network.csproj">
+      <Project>{7A311186-B9FC-4EDA-8418-82A58203461D}</Project>
+      <Name>Network</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

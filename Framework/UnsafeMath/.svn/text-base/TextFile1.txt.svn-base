@@ -1,0 +1,542 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Globalization;
+
+namespace Magic.UnsafeMath
+{
+	/// <summary>Matrix provides the fundamental operations of numerical linear algebra, but is faster becuase it uses unsafe code.</summary>
+
+	[Serializable]
+	unsafe public class UMatrix
+	{
+		private double[] data;
+		//note, data is stored like this:
+		// [ a b c    is [ a b c d e f g h i]
+		//   d e f
+		//   g h i ]
+		//THIS IS ROW MAJOR
+
+		private int rows;
+		private int columns;
+
+		/// <summary>Constructs an empty matrix of the given size.</summary>
+		/// <param name="rows">Number of rows.</param>
+		/// <param name="columns">Number of columns.</param>
+		public UMatrix(int rows, int columns)
+		{
+			this.rows = rows;
+			this.columns = columns;
+			this.data = new double[rows * columns];
+
+		}
+
+		/// <summary>Constructs a matrix of the given size and assigns a given value to all diagonal elements.</summary>
+		/// <param name="rows">Number of rows.</param>
+		/// <param name="columns">Number of columns.</param>
+		/// <param name="value">Value to assign to the diagnoal elements.</param>
+		public UMatrix(int rows, int columns, double value)
+			: this(rows, columns)
+		{
+			int k = Math.Min(rows, columns);
+			for (int i = 0; i < k; i++)
+				data[i + (i * columns)] = value;
+		}
+
+		/// <summary>Determines weather two instances are equal.</summary>
+		public override bool Equals(object obj)
+		{
+			return Equals(this, (UMatrix)obj);
+		}
+
+		/// <summary>Determines weather two instances are equal.</summary>
+		public static bool Equals(UMatrix left, UMatrix right)
+		{
+			if (((object)left) == ((object)right))
+			{
+				return true;
+			}
+
+			if ((((object)left) == null) || (((object)right) == null))
+			{
+				return false;
+			}
+
+			if ((left.Rows != right.Rows) || (left.Columns != right.Columns))
+			{
+				return false;
+			}
+
+			fixed (double* lPtr = left.data, rPtr = right.data)
+			{
+				for (int i = 0; i < left.rows * left.columns; i++)
+				{
+					if (*(lPtr + i) != *(rPtr + i)) return false;
+				}
+			}
+
+			return true;
+		}
+
+		public void Zero()
+		{
+			fixed (double* ptr = data)
+			{
+				for (int i = 0; i < rows * columns; i++)
+				{
+					*(ptr + i) = 0;
+				}
+			}
+		}
+		/// <summary>Serves as a hash function for a particular type, suitable for use in hashing algorithms and data structures like a hash table.</summary>
+		public override int GetHashCode()
+		{
+			return (this.Rows + this.Columns);
+		}
+
+		/// <summary>Returns the number of columns.</summary>
+		public int Rows
+		{
+			get
+			{
+				return this.rows;
+			}
+		}
+
+		/// <summary>Returns the number of columns.</summary>
+		public int Columns
+		{
+			get
+			{
+				return this.columns;
+			}
+		}
+
+		/// <summary>Return <see langword="true"/> if the matrix is a square matrix.</summary>
+		public bool Square
+		{
+			get
+			{
+				return (rows == columns);
+			}
+		}
+
+		/// <summary>Returns <see langword="true"/> if the matrix is symmetric.</summary>
+		public bool Symmetric
+		{
+			get
+			{
+				if (this.Square)
+				{
+					fixed (double* ptr = data)
+					{
+						for (int i = 0; i < rows; i++)
+						{
+							for (int j = 0; j <= i; j++)
+							{
+								if (*(ptr + j + (columns * i)) != *(ptr + i + (columns * j))) return false;
+							}
+						}
+					}
+					return true;
+				}
+
+				return false;
+			}
+		}
+
+		/// <summary>Access the value at the given location.</summary>
+		public double this[int row, int column]
+		{
+			set
+			{
+				if (row >= rows)
+				{
+					throw new Exception();
+				}
+				if (column >= columns)
+				{
+					throw new Exception();
+				}
+				fixed (double* ptr = data)
+				{
+					(*(ptr + column + (columns * row))) = value;
+				}
+			}
+
+			get
+			{
+				fixed (double* ptr = data)
+				{
+					return (*(ptr + column + (columns * row)));
+				}
+			}
+		}
+
+		/// <summary>Returns a sub matrix extracted from the current matrix.</summary>
+		/// <param name="startRow">Start row index</param>
+		/// <param name="endRow">End row index</param>
+		/// <param name="startColumn">Start column index</param>
+		/// <param name="endColumn">End column index</param>
+		public UMatrix Submatrix(int startRow, int endRow, int startColumn, int endColumn)
+		{
+			if ((startRow > endRow) || (startColumn > endColumn) || (startRow < 0) || (startRow >= this.rows) || (endRow < 0) || (endRow >= this.rows) || (startColumn < 0) || (startColumn >= this.columns) || (endColumn < 0) || (endColumn >= this.columns))
+			{
+				throw new ArgumentException("Argument out of range.");
+			}
+
+			UMatrix X = new UMatrix(endRow - startRow + 1, endColumn - startColumn + 1);
+			fixed (double* ptrX = X.data, ptrThis = data)
+			{
+
+				for (int i = startRow; i <= endRow; i++)
+				{
+					for (int j = startColumn; j <= endColumn; j++)
+					{
+						(*(ptrX + j + (columns * i))) = (*(ptrThis + j + (columns * i)));
+					}
+				}
+			}
+
+			return X;
+		}
+
+
+		/// <summary>Creates a copy of the matrix.</summary>
+		public UMatrix Clone()
+		{
+			UMatrix X = new UMatrix(rows, columns);
+			fixed (double* ptrX = X.data, ptrThis = data)
+			{
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j = 0; j < columns; j++)
+					{
+						(*(ptrX + j + (columns * i))) = (*(ptrThis + j + (columns * i)));
+					}
+				}
+			}
+			return X;
+		}
+
+		/// <summary>Returns the transposed matrix.</summary>
+		public UMatrix Transpose()
+		{
+			UMatrix X = new UMatrix(columns, rows);
+			fixed (double* ptrX = X.data, ptrThis = data)
+			{
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j = 0; j < columns; j++)
+					{
+						(*(ptrX + j + (columns * i))) = (*(ptrThis + i + (columns * j)));
+					}
+				}
+			}
+
+			return X;
+		}
+
+
+		/// <summary>Unary minus.</summary>
+		public static UMatrix Negate(UMatrix value)
+		{
+			if (value == null)
+			{
+				throw new ArgumentNullException("value");
+			}
+
+			int rows = value.Rows;
+			int columns = value.Columns;
+			UMatrix X = new UMatrix(rows, columns);
+			fixed (double* ptrX = X.data, ptrThis = value.data)
+			{
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j = 0; j < columns; j++)
+					{
+						(*(ptrX + j + (columns * i))) = -(*(ptrThis + j + (columns * i)));
+					}
+				}
+			}
+
+			return X;
+		}
+
+		/// <summary>Unary minus.</summary>
+		public static UMatrix operator -(UMatrix value)
+		{
+			if (value == null)
+			{
+				throw new ArgumentNullException("value");
+			}
+
+			return Negate(value);
+		}
+
+		/// <summary>Matrix equality.</summary>
+		public static bool operator ==(UMatrix left, UMatrix right)
+		{
+			return Equals(left, right);
+		}
+
+		/// <summary>Matrix inequality.</summary>
+		public static bool operator !=(UMatrix left, UMatrix right)
+		{
+			return !Equals(left, right);
+		}
+
+		/// <summary>Matrix addition.</summary>
+		public static UMatrix Add(UMatrix left, UMatrix right)
+		{
+			if (left == null)
+			{
+				throw new ArgumentNullException("left");
+			}
+
+			if (right == null)
+			{
+				throw new ArgumentNullException("right");
+			}
+
+			int rows = left.Rows;
+			int columns = left.Columns;
+
+			if ((rows != right.Rows) || (columns != right.Columns))
+			{
+				throw new ArgumentException("Matrix dimension do not match.");
+			}
+
+			UMatrix X = new UMatrix(rows, columns);
+			fixed (double* ptrX = X.data, ptrL = left.data, ptrR = right.data)
+			{
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j = 0; j < columns; j++)
+					{
+						(*(ptrX + j + (columns * i))) = (*(ptrL + j + (columns * i))) + (*(ptrR + j + (columns * i)));
+					}
+				}
+			}
+			return X;
+		}
+
+		/// <summary>Matrix addition.</summary>
+		public static UMatrix operator +(UMatrix left, UMatrix right)
+		{
+			return Add(left, right);
+		}
+
+		/// <summary>Matrix subtraction.</summary>
+		public static UMatrix Subtract(UMatrix left, UMatrix right)
+		{
+			int rows = left.Rows;
+			int columns = left.Columns;
+
+			if ((rows != right.Rows) || (columns != right.Columns))
+			{
+				throw new ArgumentException("Matrix dimension do not match.");
+			}
+
+			UMatrix X = new UMatrix(rows, columns);
+			fixed (double* ptrX = X.data, ptrL = left.data, ptrR = right.data)
+			{
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j = 0; j < columns; j++)
+					{
+						(*(ptrX + j + (columns * i))) = (*(ptrL + j + (columns * i))) - (*(ptrR + j + (columns * i)));
+					}
+				}
+			}
+			return X;
+		}
+
+		/// <summary>Matrix subtraction.</summary>
+		public static UMatrix operator -(UMatrix left, UMatrix right)
+		{
+			return Subtract(left, right);
+		}
+
+		/// <summary>Matrix-scalar multiplication.</summary>
+		public static UMatrix Multiply(UMatrix left, double right)
+		{
+			int rows = left.Rows;
+			int columns = left.Columns;
+
+			UMatrix X = new UMatrix(rows, columns);
+			fixed (double* ptrX = X.data, ptrL = left.data)
+			{
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j = 0; j < columns; j++)
+					{
+						(*(ptrX + j + (columns * i))) = ((*(ptrL + j + (columns * i))) * right);
+					}
+				}
+			}
+			return X;
+		}
+
+		/// <summary>Matrix-scalar multiplication.</summary>
+		public static UMatrix operator *(UMatrix left, double right)
+		{
+			return Multiply(left, right);
+		}
+
+		/// <summary>Matrix-matrix multiplication.</summary>
+		public static UMatrix Multiply(UMatrix left, UMatrix right)
+		{
+
+			if (right.Rows != left.columns)
+			{
+				throw new ArgumentException("Matrix dimensions are not valid.");
+			}
+
+			int rows = left.Rows;
+			int columns = right.Columns;
+			int size = left.columns;
+			UMatrix X = new UMatrix(rows, columns);
+			
+			//fixed (double* ptrX = X.data, ptrL = left.data, ptrR = right.data)
+			//{
+			//  for (int rl = 0; rl < left.rows; rl++)
+			//  {
+			//    for (int cr = 0; cr < right.columns; cr++)
+			//    {
+			//      double sum = 0;
+
+			//      for (int rr = 0; rr < right.rows; rr++)
+			//      {
+			//        sum += (*(ptrL + rr + (columns * rl))) + (*(ptrR + cr + (columns * rr)));
+			//      }
+			//      (*(ptrX + cr + (columns * rl))) = sum;
+			//    }
+			//  }
+			//}
+
+			//-----------------------------------------------------
+
+			return X;
+		}
+
+		/// <summary>Matrix-matrix multiplication.</summary>
+		public static UMatrix operator *(UMatrix left, UMatrix right)
+		{
+			if (left == null)
+			{
+				throw new ArgumentNullException("left");
+			}
+
+			if (right == null)
+			{
+				throw new ArgumentNullException("right");
+			}
+
+			return Multiply(left, right);
+		}
+
+
+		public UMatrix Inverse2x2
+		{
+			get
+			{
+				if (rows != 2 || columns != 2) throw new InvalidDataException();
+
+				fixed (double* ptr = data)
+				{
+					double det = ((*(ptr + 0 + (columns * 0))) *
+											 (*(ptr + 1 + (columns * 1)))) 
+											 -
+											 ((*(ptr + 1 + (columns * 0))) *
+											 (*(ptr + 0 + (columns * 1))));					
+					UMatrix ret = new UMatrix(2, 2);
+					ret[0, 0] = (*(ptr + 1 + (columns * 1))) / det;
+					ret[0, 1] = -(*(ptr + 1 + (columns * 0))) / det;
+					ret[1, 0] = -(*(ptr + 0 + (columns * 0))) / det;
+					ret[1, 1] = (*(ptr + 0 + (columns * 0))) / det;
+					return ret;
+				}
+			}
+		}
+		///// <summary>Returns the LHS solution vetor if the matrix is square or the least squares solution otherwise.</summary>
+		//public Matrix Solve(Matrix rightHandSide)
+		//{
+		//  return (rows == columns) ? new LuDecomposition(this).Solve(rightHandSide) : new QrDecomposition(this).Solve(rightHandSide);
+		//}
+
+		///// <summary>Inverse of the matrix if matrix is square, pseudoinverse otherwise.</summary>
+		//public Matrix Inverse
+		//{
+		//  get
+		//  {
+		//    return this.Solve(Diagonal(rows, rows, 1.0));
+		//  }
+		//}
+
+		///// <summary>Determinant if matrix is square.</summary>
+		//public double Determinant
+		//{
+		//  get
+		//  {
+		//    return new LuDecomposition(this).Determinant;
+		//  }
+		//}
+
+
+
+		/// <summary>Returns a diagonal matrix of the given size.</summary>
+		//public static UMatrix Diagonal(int rows, int columns, double value)
+		//{
+		//  UMatrix X = new UMatrix(rows, columns);
+		//  double[][] x = X.Array;
+		//  for (int i = 0; i < rows; i++)
+		//  {
+		//    for (int j = 0; j < columns; j++)
+		//    {
+		//      x[i][j] = ((i == j) ? value : 0.0);
+		//    }
+		//  }
+		//  return X;
+		//}
+
+		/// <summary>Returns the matrix in a textual form.</summary>
+		public override string ToString()
+		{
+			using (StringWriter writer = new StringWriter())
+			{
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j = 0; j < columns; j++)
+					{
+						//writer.Write(this.data[i][j] + " ");
+					}
+
+					writer.WriteLine();
+				}
+
+				return writer.ToString();
+			}
+		}
+
+		private static double Hypotenuse(double a, double b)
+		{
+			if (Math.Abs(a) > Math.Abs(b))
+			{
+				double r = b / a;
+				return Math.Abs(a) * Math.Sqrt(1 + r * r);
+			}
+
+			if (b != 0)
+			{
+				double r = a / b;
+				return Math.Abs(b) * Math.Sqrt(1 + r * r);
+			}
+
+			return 0.0;
+		}
+	}
+}
+

@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud
+END
+CameraPose.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/CameraPose.cpp
+END
+3DpointCloud.vcxproj
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/3DpointCloud.vcxproj
+END
+3DpointCloud.sln
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/3DpointCloud.sln
+END
+CameraPose.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/CameraPose.h
+END
+main.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/main.cpp
+END
+3DpointCloud.vcxproj.filters
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/3DpointCloud.vcxproj.filters
+END
+pose.pb.cc
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/pose.pb.cc
+END
+pose.pb.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/pose.pb.h
+END
+3DpointCloud.filters
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/repos/!svn/ver/5000/MAGIC/Sensors/3DpointCloud/3DpointCloud.filters
+END

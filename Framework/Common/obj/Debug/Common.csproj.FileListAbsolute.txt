@@ -1,0 +1,10 @@
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\bin\Debug\Magic.Common.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\bin\Debug\Magic.Common.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\bin\Debug\Magic.Network.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\bin\Debug\protobuf-net.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\bin\Debug\protobuf-net.xml
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\bin\Debug\Magic.Network.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\obj\Debug\Magic.Common.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Common\obj\Debug\Magic.Common.pdb

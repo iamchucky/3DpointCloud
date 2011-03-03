@@ -1,0 +1,47 @@
+package Magic.OOIDetector;
+
+message OOIDetectorTarget {
+/*
+	message Robotpose {
+		required double x = 1;
+		required double y = 2;
+		required double z = 3;
+		required double roll = 4;
+		required double pitch = 5;
+		required double yaw = 6;
+		required double timestamp = 7;
+
+		//Note: this is a flattening of a 6x6 array
+		repeated double covariance = 8;
+	}
+*/
+	message Point {
+		required double u = 1;
+		required double v = 2;
+		//required double range = 3;
+	}
+
+	message BBox {
+		required int32 tlx = 1;
+		required int32 tly = 2;
+		required int32 brx = 3;
+		required int32 bry = 4;
+	}
+
+	message MiddlePoint {
+		required int32 R = 1;
+		required int32 uPix = 2;
+	}
+
+	message Blob {
+		required Point center = 1;
+		required BBox bound = 2;
+		optional string ooitype = 3;
+		repeated MiddlePoint middlePoints = 4;
+	}
+
+//	required Robotpose robotpose = 1;
+	repeated Blob oois = 1;
+	required double timeStamp = 2;
+
+}

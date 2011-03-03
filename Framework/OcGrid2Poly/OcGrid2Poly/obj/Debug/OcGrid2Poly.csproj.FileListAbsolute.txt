@@ -1,0 +1,12 @@
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\OcGrid2Poly.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\OcGrid2Poly.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\Magic.Common.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\Magic.Network.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\protobuf-net.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\Magic.Network.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\protobuf-net.xml
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\bin\Debug\Magic.Common.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\obj\Debug\OcGrid2Poly.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OcGrid2Poly\OcGrid2Poly\obj\Debug\OcGrid2Poly.pdb

@@ -1,0 +1,16 @@
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\Magic.Rendering.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\Magic.Rendering.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\ClassLibrary1.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\Magic.Common.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\Tao.OpenGl.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\Tao.Platform.Windows.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\Magic.Network.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\protobuf-net.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\Magic.Network.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\ClassLibrary1.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\protobuf-net.xml
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\bin\Debug\Magic.Common.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\obj\Debug\Magic.Rendering.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\Rendering\obj\Debug\Magic.Rendering.pdb

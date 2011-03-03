@@ -1,0 +1,12 @@
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\ClassLibrary1.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\ClassLibrary1.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\Magic.Common.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\Magic.Network.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\protobuf-net.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\Magic.Network.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\protobuf-net.xml
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\bin\Debug\Magic.Common.pdb
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\obj\Debug\ClassLibrary1.dll
+C:\Users\ty244\Desktop\ASL repo\MAGIC\Framework\OccupancyGrid\obj\Debug\ClassLibrary1.pdb
