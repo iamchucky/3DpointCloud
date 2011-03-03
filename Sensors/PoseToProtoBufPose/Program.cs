@@ -46,7 +46,7 @@ namespace PoseToProtoBufPose
         {
             if (e.message == null) return;
             pose = e.message.Pose;
-            Console.WriteLine(pose.x + "\t" + pose.y + "\t" + pose.yaw + "\t" + pose.timestamp);
+            
             protoPose.x = pose.x;
             protoPose.y = pose.y;
             protoPose.z = pose.z;
@@ -56,7 +56,17 @@ namespace PoseToProtoBufPose
             protoPose.timeStamp = pose.TimeStamp;
 
             protoPoseServer.SendUnreliably(protoPose);
-            Console.WriteLine("Seccessfully sent out ProtoPose @ " + protoPose.timeStamp);
+            // Clear the screen
+            Console.Clear();
+            Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop);
+            Console.WriteLine("Robot pose:");
+            Console.WriteLine("X:\t" + pose.x);
+            Console.WriteLine("Y:\t" + pose.y);
+            Console.WriteLine("Z:\t" + pose.z);
+            Console.WriteLine("yaw:\t" + pose.yaw);
+            Console.WriteLine("pitch:\t" + pose.pitch);
+            Console.WriteLine("roll:\t" + pose.roll);
+            Console.WriteLine("timestamp:\t" + pose.timestamp);
         }
     }
 }

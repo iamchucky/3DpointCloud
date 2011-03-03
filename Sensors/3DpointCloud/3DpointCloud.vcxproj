@@ -50,7 +50,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\OpenCV2.2\include;\\MULTIROBOT-SERV\users\Profiles\ty244\Desktop\MAGIC repo\Libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\OpenCV2.2\include;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -58,8 +58,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opencv_core220d.lib;opencv_highgui220d.lib;opencv_imgproc220d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\OpenCV2.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_core220d.lib;opencv_highgui220d.lib;opencv_imgproc220d.lib;libprotobufd.lib;libprotobuf-lited.lib;libprotocd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\OpenCV2.2\lib;..\..\Libs\Google\Protobuf;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
@@ -85,83 +85,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Framework\Network\udp_connection.cpp" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\descriptor.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\descriptor.pb.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\descriptor_database.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\dynamic_message.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\extension_set.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\extension_set_heavy.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\generated_message_reflection.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\generated_message_util.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\io\coded_stream.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\io\gzip_stream.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\io\printer.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\io\tokenizer.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\io\zero_copy_stream.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\io\zero_copy_stream_impl.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\io\zero_copy_stream_impl_lite.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\message.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\message_lite.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\reflection_ops.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\repeated_field.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\service.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\stubs\common.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\stubs\hash.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\stubs\once.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\stubs\structurally_valid.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\stubs\strutil.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\stubs\substitute.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\text_format.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\unknown_field_set.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\wire_format.cc" />
-    <ClCompile Include="..\..\Libs\Google\Protobuf\wire_format_lite.cc" />
     <ClCompile Include="CameraPose.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pose.pb.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Framework\Network\udp_connection.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\config.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\descriptor.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\descriptor.pb.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\descriptor_database.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\dynamic_message.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\extension_set.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\generated_message_reflection.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\generated_message_util.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\coded_stream.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\config.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\gzip_stream.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\package_info.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\printer.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\tokenizer.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\zero_copy_stream.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\zero_copy_stream_impl.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\io\zero_copy_stream_impl_lite.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\message.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\message_lite.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\package_info.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\reflection_ops.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\repeated_field.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\service.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\stubs\common.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\stubs\config.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\stubs\hash.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\stubs\map-util.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\stubs\once.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\stubs\stl_util-inl.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\stubs\strutil.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\stubs\substitute.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\text_format.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\unknown_field_set.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\wire_format.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\wire_format_lite.h" />
-    <ClInclude Include="..\..\Libs\Google\Protobuf\wire_format_lite_inl.h" />
     <ClInclude Include="CameraPose.h" />
     <ClInclude Include="pose.pb.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\Libs\Google\Protobuf\descriptor.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
