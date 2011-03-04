@@ -32,25 +32,17 @@ char calibFilename[]="calib\\PGR_FireFlyMV.cal";
 
 CameraPose* cameraPose;
 CameraParam * cameraParam;
-int broadcastmod=0;
-int robotID;
 
+int robotID;
 bool running=true;
 bool hidedisplay = false;
 bool displayhidden = false;
-bool logcam = false;
 int frameNum=0;
 double timestamp = 0;
 double oldtimestamp = -1;
 IplImage* img;
 IplImage* resize;
 IplImage* resizeBW;
-IplImage* colorImg;
-unsigned char* rawimg;
-char tmpFilename[200];
-int imgNum=0;
-CvFont font = cvFont(.75,1);
-bool logging = false;
 
 CONSOLE_SCREEN_BUFFER_INFO startConsoleInfo;
 
@@ -162,66 +154,25 @@ void InitCommon ()
 
 	GetConsoleCursorPosition();
 
-	//cvNamedWindow ("output",CV_WINDOW_AUTOSIZE);
 	img = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,CHANNELS);
 	resize = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,3);
 	resizeBW = cvCreateImage(cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,1);
-	colorImg = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
-
-	rawimg = new unsigned char[640*480];
 	frameNum=0;
 	running=true;		
 }
 
-
-
-void ConvertToRawImage (IplImage* img, unsigned char* rawimg)
-{
-	for (int i=0; i<640*480; i++)
-		rawimg[i] = *(unsigned char*)(img->imageData + i);
-}
-
-
 double lastTS=0;
-void RunCamera(double timestamp)
+void RunCamera()
 {			
 	cvCvtColor (resize,resizeBW,CV_BGR2GRAY);
-	//if (oldtimestamp != timestamp)//
-	if((frameNum%10==0)&&(!logcam))
-	{
-		if (broadcastmod>=3)
-		{
-			////IplImage* broadcastImg = cvCreateImage (cvSize(320,240),IPL_DEPTH_8U,1);		// Grayscale 320x240 image
-			//if (WIDTH > 640)
-			//{
-			//	cvResize(resize, colorImg);
-			//	broadcastCam->SendImage((unsigned char*)colorImg->imageData,colorImg->widthStep, UDPIMGWIDTH, UDPIMGHEIGHT,timestamp,frameNum,robotID);
-			//	if(logging)
-			//		broadcastloggingCam->SendImage((unsigned char*)colorImg->imageData, colorImg->widthStep, UDPIMGWIDTH, UDPIMGHEIGHT, timestamp, frameNum, robotID);
-			//}
-			//else
-			//{
-			//	cvResize(resize, colorImg);
-			//	broadcastCam->SendImage((unsigned char*)colorImg->imageData,colorImg->widthStep, 320, 240,timestamp,frameNum,robotID);
-			//	if(logging)
-			//		broadcastloggingCam->SendImage((unsigned char*)colorImg->imageData, colorImg->widthStep, 320, 240, timestamp, frameNum, robotID);
-			//}
-			////cvResize (resizeBW,broadcastImg);
-
-
-			////cvReleaseImage(&broadcastImg);
-			//broadcastmod = 0;	
-		}
-		broadcastmod++;
-	}
 
 	if (!hidedisplay)
 	{
 		char str[30];
 		sprintf(str,"ts:%f ind:%d",timestamp,frameNum);
 		cvRectangle(resize,cvPoint(10,2),cvPoint(170,10),cvScalar(0,0,0),-1);
-		cvPutText (resize,str,cvPoint(10,10),&font,cvScalar(255,255,255));
+		cvPutText (resize,str,cvPoint(10,10),&cvFont(.75,1),cvScalar(255,255,255));
 		cvShowImage("output",resize);
 		displayhidden = false;
 	}
@@ -238,9 +189,43 @@ void RunCamera(double timestamp)
 
 }
 
+bool GetCameraInput()
+{
+	//wait for an image
+	if (WaitForSingleObject(ghMutex,5000)!=WAIT_OBJECT_0)
+	{
+		//	running=false;
+		printf("Warning: Did not receive global map handle in 5 seconds...\n");
+		Sleep(1000);
+		return false;
+	}
+
+	pBuf = MapViewOfFile(hMapFile,   // handle to map object
+		FILE_MAP_READ, // read/write permission
+		0,                   
+		0,                   
+		0);            //goto max size
+
+	if (pBuf == NULL) 
+	{ 
+		printf("Could not map view of file (%d).\n", GetLastError()); 
+		Sleep(1000);
+		return false;
+	}
+	memcpy(img->imageData,pBuf,WIDTH*HEIGHT*CHANNELS);
+	memcpy(&timestamp,(char*)pBuf + (WIDTH*HEIGHT*CHANNELS),sizeof(double));
+	UnmapViewOfFile(pBuf);
+	ReleaseMutex(ghMutex);
+
+	if(CHANNELS == 1)
+		cvCvtColor(img,resize,CV_BayerBG2BGR);
+	else
+		cvResize(img,resize);
+}
 
 void RunRealtime()
 {	 
+	// Make we can get camera input
 	bool warnNoMappingObject = true;
 	while(hMapFile == NULL)
 	{
@@ -259,60 +244,28 @@ void RunRealtime()
 	char filename[300];
 	while(running)
 	{	
-		//wait for an image
-		if (WaitForSingleObject(ghMutex,5000)!=WAIT_OBJECT_0)
+		if (!GetCameraInput())	// Get image saved to IplImage "resize"
 		{
-			//	running=false;
-			printf("Warning: Did not receive global map handle in 5 seconds...\n");
-			Sleep(1000);
+			cout << "[RunRealtime()]: Can't get camera input from memory mapped file." << endl;
 			continue;
 		}
 
-		pBuf = MapViewOfFile(hMapFile,   // handle to map object
-			FILE_MAP_READ, // read/write permission
-			0,                   
-			0,                   
-			0);            //goto max size
+		// Start of my stuff
 
-		if (pBuf == NULL) 
-		{ 
-			printf("Could not map view of file (%d).\n", GetLastError()); 
-			Sleep(1000);
-			continue;
-		}
-		memcpy(img->imageData,pBuf,WIDTH*HEIGHT*CHANNELS);
-		memcpy(&timestamp,(char*)pBuf + (WIDTH*HEIGHT*CHANNELS),sizeof(double));
-		UnmapViewOfFile(pBuf);
-		ReleaseMutex(ghMutex);
 
-		if(CHANNELS == 1)
-			cvCvtColor(img,resize,CV_BayerBG2BGR);
-		else
-			cvResize(img,resize);
+		// End of my stuff
 
-		if((oldtimestamp != timestamp)&&(logcam))	// if((frameNum%30==0)&&(logcam))
-		{
-			sprintf(filename, "c:\\Camera_Log\\img_ts_%f_ind_%05d.jpg",timestamp, frameNum);
-			//cvSaveImage ("C:\\capture.bmp",img);
-			cvSaveImage (filename,resize);
-			printf("Current image saved to %s\n", filename);
-		}
+		// Display current camera view
+		RunCamera();			
 
-		RunCamera(timestamp);			
 		int key = cvWaitKey (1);
 		if (key=='q')
 			running=false;			
 		else if (key == 'c')
 		{
-			sprintf(filename, "c:\\img_%05d.jpg", frameNum);
-			//cvSaveImage ("C:\\capture.bmp",img);
-			cvSaveImage (filename,resize);
-			printf("Current image saved to %s\n", filename);
 		}
 		else if (key == 's')
 			hidedisplay = !hidedisplay;
-		else if (key == 'l')
-			logcam = !logcam;
 
 		if(oldtimestamp != timestamp)
 		{
@@ -326,7 +279,6 @@ void CleanUp()
 {
 	cout << "Closing the program ..." << endl;
 	CloseHandle(hMapFile);	
-	cvReleaseImage(&colorImg);
 }
 
 int main(int argc, char **argv)
@@ -334,7 +286,6 @@ int main(int argc, char **argv)
 	SetProcessAffinityMask (GetCurrentProcess (),0x01);
 	SetErrorMode(0x07);
 
-	Sleep(2000);
 	//we use this mutex to know when there are new images...
 	ghMutex = CreateMutexA(	NULL,FALSE, "CamMutex");         
 	if (ghMutex == NULL) printf("CreateMutex error: %d\n", GetLastError());
@@ -342,6 +293,7 @@ int main(int argc, char **argv)
 	robotID = 3;
 	cout<<"3DpointCloud"<<endl;
 	cout<<"Robot ID: " << robotID << endl;
+
 	InitCommon();	
 	Sleep(100);
 	RunRealtime();	
