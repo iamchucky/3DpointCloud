@@ -1,47 +1,37 @@
-//amn32 - October 19, 2009
-//Broadcasts UDP JPEG compressed images 
+//ty244 - March 4, 2011
+//Generate 3D point cloud from camera input
 //using the memory mapped file camera server
 
 #ifndef _WIN32_WINNT		// Allow use of features specific to Windows XP or later.                   
 #define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
 #endif			
 
-#define UDPIMGWIDTH 360//480
-#define UDPIMGHEIGHT 90//120
-
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
 #include <sstream>
 
-
-
-//#include "..\..\Framework\Camera\udpcamerabroadcaster.h"
-//#include "..\..\Framework\network\udp_connection.h"
-//#include "..\..\Framework\network\net_utility.h"
-//#include "..\..\Framework\utility\fastdelegate.h"
-//#include "simplejpeg.h"
-//#include <fstream>
 #include "CameraPose.h"
+#include "CameraParam.h"
 
 #include "opencv\cv.h"
 #include "opencv\highgui.h"
 
 using namespace std;
 
-int WIDTH = 640;
-int HEIGHT = 480;
-int CHANNELS = 3;
+#define WIDTH 640
+#define HEIGHT 480
+#define CHANNELS 1
 
 char camName[]="Global\\CamMappingObject";
 HANDLE hMapFile=NULL;
 HANDLE ghMutex;
 void* pBuf;
 
-//camera configuration
-//UDPCameraBroadcaster* broadcastCam;
-//UDPCameraBroadcaster* broadcastloggingCam;
+char calibFilename[]="calib\\PGR_FireFlyMV.cal";
+
 CameraPose* cameraPose;
+CameraParam * cameraParam;
 int broadcastmod=0;
 int robotID;
 
@@ -61,6 +51,8 @@ char tmpFilename[200];
 int imgNum=0;
 CvFont font = cvFont(.75,1);
 bool logging = false;
+
+CONSOLE_SCREEN_BUFFER_INFO startConsoleInfo;
 
 using namespace std;
 
@@ -100,26 +92,81 @@ using namespace std;
 //	return ret;
 //}
 
-void PoseCallback(RobotPoseMsg pose, CameraPose* rx, void* data)
+void ClearScreen(bool startFromBeginning)
 {
-	//printf("I got a pose msg\n");
+	HANDLE                     hStdOut;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD                      count;
+	DWORD                      cellCount;
+	COORD                      homeCoords = { 0, 0 };
+
+	hStdOut = GetStdHandle( STD_OUTPUT_HANDLE );
+	if (hStdOut == INVALID_HANDLE_VALUE) return;
+
+	/* Get the number of cells in the current buffer */
+	if (!GetConsoleScreenBufferInfo( hStdOut, &csbi )) return;
+	cellCount = csbi.dwSize.X *csbi.dwSize.Y;
+
+	if (!startFromBeginning)
+	{
+		homeCoords = startConsoleInfo.dwCursorPosition;
+		cellCount = startConsoleInfo.dwSize.X *startConsoleInfo.dwSize.Y;
+	}
+
+	/* Fill the entire buffer with spaces */
+	if (!FillConsoleOutputCharacter(
+	hStdOut,
+	(TCHAR) ' ',
+	cellCount,
+	homeCoords,
+	&count
+	)) return;
+
+	/* Fill the entire buffer with the current colors and attributes */
+	if (!FillConsoleOutputAttribute(
+	hStdOut,
+	csbi.wAttributes,
+	cellCount,
+	homeCoords,
+	&count
+	)) return;
+
+	/* Move the cursor home */
+	SetConsoleCursorPosition( hStdOut, homeCoords );
+}
+
+void GetConsoleCursorPosition()
+{
+	HANDLE                     hStdOut;
+
+	hStdOut = GetStdHandle( STD_OUTPUT_HANDLE );
+	if (hStdOut == INVALID_HANDLE_VALUE) return;
+
+	/* Get the number of cells in the current buffer */
+	if (!GetConsoleScreenBufferInfo( hStdOut, &startConsoleInfo )) return;
+}
+
+void PoseCallback(RobotPoseMsg pmsg, CameraPose* cameraPose, void* data)
+{
+	ClearScreen(false);
+	cameraParam->Update_R_T(cameraPose->pose);
 }
 
 void InitCommon ()
 {	
-	//broadcastCam = new UDPCameraBroadcaster ();								// Sensor broadcast
-	//if(logging)
-	//	broadcastloggingCam = new UDPCameraBroadcaster("239.132.1.99", 30099);	// Sensor broadcast logging
+	cout << endl << "Loading camera intrinsic parameters: " << endl;
+	cameraParam = new CameraParam(calibFilename);	// Load camera intrinsic parameters (loaded K)
+
 	cameraPose = new CameraPose();
 	cameraPose->SetCallback(PoseCallback, NULL);
-	cvNamedWindow ("output",CV_WINDOW_AUTOSIZE);
+
+	GetConsoleCursorPosition();
+
+	//cvNamedWindow ("output",CV_WINDOW_AUTOSIZE);
 	img = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,CHANNELS);
 	resize = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,3);
 	resizeBW = cvCreateImage(cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,1);
-	if (WIDTH > 640)
-		colorImg = cvCreateImage(cvSize(UDPIMGWIDTH, UDPIMGHEIGHT), IPL_DEPTH_8U, 3);	//480x120
-	else
-		colorImg = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
+	colorImg = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3);
 
 
 	rawimg = new unsigned char[640*480];
@@ -194,12 +241,17 @@ void RunCamera(double timestamp)
 
 void RunRealtime()
 {	 
+	bool warnNoMappingObject = true;
 	while(hMapFile == NULL)
 	{
 		hMapFile = OpenFileMappingA(FILE_MAP_READ, FALSE, camName);
 		if (hMapFile == NULL) 
 		{
-			printf("Could not access file mapping object (%d).\n",GetLastError());
+			if (warnNoMappingObject)
+			{
+				cout << endl << "Waiting for CameraServer ... " << endl;
+				warnNoMappingObject = false;
+			}
 			Sleep(1000);
 		}		
 	}	
@@ -215,7 +267,7 @@ void RunRealtime()
 			Sleep(1000);
 			continue;
 		}
-		//EnterCriticalSection(&(rtCam->camgrab_cs));
+
 		pBuf = MapViewOfFile(hMapFile,   // handle to map object
 			FILE_MAP_READ, // read/write permission
 			0,                   
@@ -268,42 +320,17 @@ void RunRealtime()
 			oldtimestamp = timestamp;
 		}
 	}
+}
+
+void CleanUp()
+{
+	cout << "Closing the program ..." << endl;
 	CloseHandle(hMapFile);	
 	cvReleaseImage(&colorImg);
 }
 
 int main(int argc, char **argv)
 {
-	if (argc>1)
-	{
-		if (strcmp(argv[1],"FIREFLY")==0) 
-		{
-			WIDTH = WIDTH*3;
-			HEIGHT = 480;
-			CHANNELS = 1;			
-			printf ("Using PGR Firefly.\n");			
-		}
-		else if (strcmp(argv[1],"PLAYLOG")==0) 
-		{
-			CHANNELS = 1;		
-			printf ("Playing logged data.\n");	
-		}
-		else
-		{
-			CHANNELS = 3;			
-			printf ("Using Unibrain.\n");			
-		}
-
-		if(strcmp(argv[2], "LOG") == 0)
-		{
-			logging = true;
-		}
-
-	}
-	else
-		printf("Warning: No Command Line Arguments Defined. Using Defaults.\n");
-
-	CHANNELS = 1;	
 	SetProcessAffinityMask (GetCurrentProcess (),0x01);
 	SetErrorMode(0x07);
 
@@ -313,13 +340,13 @@ int main(int argc, char **argv)
 	if (ghMutex == NULL) printf("CreateMutex error: %d\n", GetLastError());
 	//robotID = GetRobotID() % 10;
 	robotID = 3;
-	cout<<"CameraBroadcaster"<<endl;
+	cout<<"3DpointCloud"<<endl;
 	cout<<"Robot ID: " << robotID << endl;
-	cout<<"\n\nPress 's' to toggle the display (off by default)\n";
-	cout<<"Press 'l' to toggle the camera logging (off by default)\n";
-	cout<<"Logged image is saved under c:\Camera_Log\ \n\n\n";
 	InitCommon();	
 	Sleep(100);
 	RunRealtime();	
+
+	CleanUp();
+
 	return 0;
 }

@@ -16,9 +16,7 @@ CameraPose::CameraPose(void)
 	params.reuse_addr = 1;
 	conn = new udp_connection (params);	
 	conn->set_callback (MakeDelegate(this,&CameraPose::UDPCallback),conn);	
-	sequenceNumber=0;
 	packetCount=0;
-	dropCount=0;
 	printf("UDP Camera RX Interface Initialized. %s:%d\r\n",UDP_POSE_ADDR,UDP_POSE_PORT);
 }
 
@@ -29,27 +27,22 @@ CameraPose::~CameraPose (void)
 
 void CameraPose::UDPCallback(udp_message& msg, udp_connection* conn, void* arg)
 { 
-	//messages come in like this:
-	// ID + memory mapped message, ID is 1 byte	
+	// messages come from the protobuf:
 	RobotPoseMsg umsg = *((RobotPoseMsg*)msg.data);
-	
-	/*int rxSequenceNumber=	umsg.index;
-	dropCount += (rxSequenceNumber-(sequenceNumber+1));
-	sequenceNumber = rxSequenceNumber;*/
 	packetCount++;
+
+	// save protobuf message into struct
+	Magic::Proto::Pose protoPose;
+	protoPose.ParseFromArray(msg.data, msg.len);
+	pose.x = protoPose.x();
+	pose.y = protoPose.y();
+	pose.z = protoPose.z();
+	pose.yaw = protoPose.yaw();
+	pose.pitch = protoPose.pitch();
+	pose.roll = protoPose.roll();
+	pose.timestamp = protoPose.timestamp();
 	
 	//raise event				
 	if (!(cbk.empty()))	cbk(umsg, this, cbk_arg);
 
-	Magic::Proto::Pose protoPose;
-	protoPose.ParseFromArray(msg.data, msg.len);
-	cout << protoPose.x() << "\t" <<  protoPose.y() << "\t" << protoPose.yaw() << "\t" << protoPose.timestamp() <<  endl;
-
-	/*if (packetCount%100==0)	
-	{
-		#ifdef PRINT_PACKET_COUNT_DEBUG
-		printf("UC: Packets: %d Seq: %d Dropped: %d Drop Rate: %f \r\n",packetCount,sequenceNumber,dropCount,((float)dropCount/(float)packetCount)*100.0f);	
-		#endif
-		packetCount=0; dropCount=0;
-	}*/
 }

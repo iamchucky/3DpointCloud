@@ -21,6 +21,9 @@
     <ClCompile Include="pose.pb.cc">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="CameraParam.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraPose.h">
@@ -30,6 +33,9 @@
       <Filter>includes</Filter>
     </ClInclude>
     <ClInclude Include="pose.pb.h">
+      <Filter>includes</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraParam.h">
       <Filter>includes</Filter>
     </ClInclude>
   </ItemGroup>
