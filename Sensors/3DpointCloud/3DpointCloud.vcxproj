@@ -59,7 +59,7 @@
       <PreprocessorDefinitions>DEBUG_LEVEL1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opencv_core220d.lib;opencv_highgui220d.lib;opencv_imgproc220d.lib;libprotobufd.lib;libprotobuf-lited.lib;libprotocd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_core220d.lib;opencv_highgui220d.lib;opencv_imgproc220d.lib;opencv_flann220d.lib;opencv_features2d220d.lib;opencv_calib3d220d.lib;opencv_video220d.lib;libprotobufd.lib;libprotobuf-lited.lib;libprotocd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\OpenCV2.2\lib;..\..\Libs\Google\Protobuf;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX86</TargetMachine>

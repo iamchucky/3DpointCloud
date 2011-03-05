@@ -13,6 +13,7 @@
 
 #include "CameraPose.h"
 #include "CameraParam.h"
+#include "Features.h"
 
 #include "opencv\cv.h"
 #include "opencv\highgui.h"
@@ -43,6 +44,9 @@ double oldtimestamp = -1;
 IplImage* img;
 IplImage* resize;
 IplImage* resizeBW;
+IplImage* prevImg;
+vector <cv::Point2f> prevPts;
+vector <cv::Point2f> nextPts;
 
 CONSOLE_SCREEN_BUFFER_INFO startConsoleInfo;
 
@@ -157,6 +161,7 @@ void InitCommon ()
 	img = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,CHANNELS);
 	resize = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,3);
 	resizeBW = cvCreateImage(cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,1);
+	prevImg = cvCreateImage(cvGetSize(resize),IPL_DEPTH_8U,1);
 
 	frameNum=0;
 	running=true;		
@@ -218,9 +223,15 @@ bool GetCameraInput()
 	ReleaseMutex(ghMutex);
 
 	if(CHANNELS == 1)
+	{
 		cvCvtColor(img,resize,CV_BayerBG2BGR);
+		cvCvtColor(resize,resizeBW,CV_BGR2GRAY);
+	}
 	else
+	{
 		cvResize(img,resize);
+		cvCvtColor(resize,resizeBW,CV_BGR2GRAY);
+	}
 }
 
 void RunRealtime()
@@ -251,12 +262,68 @@ void RunRealtime()
 		}
 
 		// Start of my stuff
+		if (timestamp != oldtimestamp)
+		{
+			/*FeatureSet features1;
+			computeFeatures ( resize, features1, 1 );*/
+			std::vector<cv::KeyPoint> keypoints;
+			cv::Mat descriptors;
+			cv::FAST(resizeBW,keypoints,50);
 
+			vector <uchar> status;
+			vector <float> err;
 
-		// End of my stuff
+			if (frameNum != 0)
+			{
+				cv::calcOpticalFlowPyrLK( prevImg, resizeBW, prevPts, nextPts, status, err);
+				/*cv::SIFT sift;
+				sift ( resizeBW, cv::Mat (), keypoints, descriptors, true);*/
+				int kx;
+				int ky;
+				for ( int i = 0; i < keypoints.size (); ++i )
+				{
+					kx = keypoints[i].pt.x;
+					ky = keypoints[i].pt.y;
+					cvRectangle( resize, cvPoint(kx-2,ky-2), cvPoint(kx+2,ky+2),cvScalar(0,0,255) );
+				}
+				for ( int i = 0; i < prevPts.size (); ++i )
+				{
+					if (status[i] && err[i] < 150.f)
+					{
+						int px = prevPts[i].x;
+						int py = prevPts[i].y;
+						int nx = nextPts[i].x;
+						int ny = nextPts[i].y;
+						int d = (px-nx)*(px-nx)+(py-ny)*(py-ny);
+						if (d < 2000)
+						{
+							cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
+							if (!cameraParam->K.empty() && !cameraParam->RT.empty())
+							{
+								// Triangulation using P and feature correspondence
+								// cameraParam->P
+								// prevPts
+								// nextPts
+							}
+						}
+					}
+				}
+			}
 
-		// Display current camera view
-		RunCamera();			
+			cvCopy(resizeBW,prevImg);
+			prevPts.resize(keypoints.size());
+			for (int n = 0; n < prevPts.size(); ++n)
+			{
+				prevPts[n].x = keypoints[n].pt.x;
+				prevPts[n].y = keypoints[n].pt.y;
+			}
+			
+			// End of my stuff
+
+			// Display current camera view
+			RunCamera();			
+		}
+		
 
 		int key = cvWaitKey (1);
 		if (key=='q')
@@ -279,6 +346,10 @@ void CleanUp()
 {
 	cout << "Closing the program ..." << endl;
 	CloseHandle(hMapFile);	
+	cvReleaseImage(&img);
+	cvReleaseImage(&resize);
+	cvReleaseImage(&resizeBW);
+	cvReleaseImage(&prevImg);
 }
 
 int main(int argc, char **argv)

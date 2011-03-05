@@ -26,10 +26,13 @@ public:
 	double Get_alpha_c(void);
 
 	void Update_R_T(CameraPose::Pose & pose);
+	cv::Mat FindProjection();
 
 	cv::Mat K;
 	cv::Mat R;
 	cv::Mat T;
 	cv::Mat T_x;
+	cv::Mat RT;
+	cv::Mat P;
 };
 
