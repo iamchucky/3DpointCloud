@@ -10,6 +10,8 @@
 #include <tchar.h>
 #include <string>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 #include "CameraPose.h"
 #include "CameraParam.h"
@@ -30,6 +32,7 @@ HANDLE ghMutex;
 void* pBuf;
 
 char calibFilename[]="calib\\PGR_FireFlyMV.cal";
+char outputFilename[]="3D\\output.txt";
 
 CameraPose* cameraPose;
 CameraParam * cameraParam;
@@ -47,6 +50,10 @@ IplImage* resizeBW;
 IplImage* prevImg;
 vector <cv::Point2f> prevPts;
 vector <cv::Point2f> nextPts;
+cv::Mat prevP;
+cv::Mat nextP;
+cv::Mat threeDcoord;
+ofstream output;
 
 CONSOLE_SCREEN_BUFFER_INFO startConsoleInfo;
 
@@ -144,7 +151,9 @@ void GetConsoleCursorPosition()
 
 void PoseCallback(RobotPoseMsg pmsg, CameraPose* cameraPose, void* data)
 {
+#ifdef DEBUG_LEVEL1
 	ClearScreen(false);
+#endif
 	cameraParam->Update_R_T(cameraPose->pose);
 }
 
@@ -162,6 +171,12 @@ void InitCommon ()
 	resize = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,3);
 	resizeBW = cvCreateImage(cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,1);
 	prevImg = cvCreateImage(cvGetSize(resize),IPL_DEPTH_8U,1);
+
+	threeDcoord = cv::Mat(4,1,CV_64F);
+	/*prevP = cv::Mat(3,4,CV_64F);
+	nextP = cv::Mat(3,4,CV_64F);*/
+
+	output.open (outputFilename, ios::out);
 
 	frameNum=0;
 	running=true;		
@@ -262,18 +277,27 @@ void RunRealtime()
 		}
 
 		// Start of my stuff
-		if (timestamp != oldtimestamp)
+		if (timestamp != oldtimestamp && !cameraParam->K.empty() && !cameraParam->RT.empty())
 		{
 			/*FeatureSet features1;
 			computeFeatures ( resize, features1, 1 );*/
 			std::vector<cv::KeyPoint> keypoints;
 			cv::Mat descriptors;
+			nextP = cameraParam->P.clone();
 			cv::FAST(resizeBW,keypoints,50);
 
 			vector <uchar> status;
 			vector <float> err;
-
-			if (frameNum != 0)
+			
+			cv::Mat origin =  (cv::Mat_<double>(4,1) << 0.0, 0.0, 0.0, 1.0);
+			cv::Mat origin2d = cv::Mat(3,1,CV_64F);
+			origin2d = nextP*origin;
+			int orix = origin2d.at<double>(0,0)/origin2d.at<double>(2,0);
+			int oriy = origin2d.at<double>(1,0)/origin2d.at<double>(2,0);
+			if (abs(orix) < 640 && abs(oriy) < 480)
+				cvRectangle( resize, cvPoint(orix-10,oriy-10), cvPoint(orix+10,oriy+10),cvScalar(255,0,0) );
+			
+			if (!prevP.empty())
 			{
 				cv::calcOpticalFlowPyrLK( prevImg, resizeBW, prevPts, nextPts, status, err);
 				/*cv::SIFT sift;
@@ -288,28 +312,56 @@ void RunRealtime()
 				}
 				for ( int i = 0; i < prevPts.size (); ++i )
 				{
-					if (status[i] && err[i] < 150.f)
+					if (status[i])// && err[i] < 150.f)
 					{
 						int px = prevPts[i].x;
 						int py = prevPts[i].y;
 						int nx = nextPts[i].x;
 						int ny = nextPts[i].y;
 						int d = (px-nx)*(px-nx)+(py-ny)*(py-ny);
-						if (d < 2000)
+						if (d < 225)
 						{
 							cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
-							if (!cameraParam->K.empty() && !cameraParam->RT.empty())
-							{
-								// Triangulation using P and feature correspondence
-								// cameraParam->P
-								// prevPts
-								// nextPts
-							}
+
+							// Triangulation using P and feature correspondence
+							// prevP
+							// cameraParam->P
+							// prevPts
+							// nextPts
+							cv::Mat A = (cv::Mat_<double>(4,4) <<	
+								prevP.at<double>(2,0)*px-prevP.at<double>(0,0), prevP.at<double>(2,1)*px-prevP.at<double>(0,1), prevP.at<double>(2,2)*px-prevP.at<double>(0,2), prevP.at<double>(2,3)*px-prevP.at<double>(0,3),
+								prevP.at<double>(2,0)*py-prevP.at<double>(1,0), prevP.at<double>(2,1)*py-prevP.at<double>(1,1), prevP.at<double>(2,2)*py-prevP.at<double>(1,2), prevP.at<double>(2,3)*py-prevP.at<double>(1,3),
+								nextP.at<double>(2,0)*nx-nextP.at<double>(0,0), nextP.at<double>(2,1)*nx-nextP.at<double>(0,1), nextP.at<double>(2,2)*nx-nextP.at<double>(0,2), nextP.at<double>(2,3)*nx-nextP.at<double>(0,3),
+								nextP.at<double>(2,0)*ny-nextP.at<double>(1,0), nextP.at<double>(2,1)*ny-nextP.at<double>(1,1), nextP.at<double>(2,2)*ny-nextP.at<double>(1,2), nextP.at<double>(2,3)*ny-nextP.at<double>(1,3)	);
+							//cv::Mat B = cv::Mat::zeros(4,1,CV_64F);
+							//cv::solve(A,B,threeDcoord,cv::DECOMP_SVD);
+							cv::SVD::solveZ(A, threeDcoord);
+
+							/*ClearScreen(false);
+							cout << endl << "3D coord:" << endl;
+							cout << threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0) << endl;
+							cout << threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0) << endl;
+							cout << threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0) << endl;*/
+							//cout << threeDcoord.at<double>(3,0) << endl;
+							double ox = threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0);
+							double oy = threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0);
+							double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
+							//if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
+							output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t" ;
+							output << A.at<double> (0,0) << "\t" << A.at<double> (0,1) << "\t" << A.at<double> (0,2) << "\t" << A.at<double> (0,3)
+								<< "\t" << A.at<double> (1,0) << "\t" << A.at<double> (1,1) << "\t" << A.at<double> (1,2) << "\t" << A.at<double> (1,3)
+								<< "\t" << A.at<double> (2,0) << "\t" << A.at<double> (2,1) << "\t" << A.at<double> (2,2) << "\t" << A.at<double> (2,3)
+								<< "\t" << A.at<double> (3,0) << "\t" << A.at<double> (3,1) << "\t" << A.at<double> (3,2) << "\t" << A.at<double> (3,3) << "\t";
+							/*output << prevP.at<double> (0,0) << "\t" << prevP.at<double> (0,1) << "\t" << prevP.at<double> (0,2) << "\t" << prevP.at<double> (0,3)
+						   << "\t" << prevP.at<double> (1,0) << "\t" << prevP.at<double> (1,1) << "\t" << prevP.at<double> (1,2) << "\t" << prevP.at<double> (1,3)
+						   << "\t" << prevP.at<double> (2,0) << "\t" << prevP.at<double> (2,1) << "\t" << prevP.at<double> (2,2) << "\t" << prevP.at<double> (2,3) << "\t";*/
+								output << ox << "\t" << oy << "\t" << oz << endl;
 						}
 					}
 				}
+				
 			}
-
+			prevP = nextP.clone();
 			cvCopy(resizeBW,prevImg);
 			prevPts.resize(keypoints.size());
 			for (int n = 0; n < prevPts.size(); ++n)
@@ -317,6 +369,9 @@ void RunRealtime()
 				prevPts[n].x = keypoints[n].pt.x;
 				prevPts[n].y = keypoints[n].pt.y;
 			}
+			
+
+			
 			
 			// End of my stuff
 
@@ -350,6 +405,7 @@ void CleanUp()
 	cvReleaseImage(&resize);
 	cvReleaseImage(&resizeBW);
 	cvReleaseImage(&prevImg);
+	output.close();
 }
 
 int main(int argc, char **argv)

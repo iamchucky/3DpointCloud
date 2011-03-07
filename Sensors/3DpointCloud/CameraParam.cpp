@@ -6,6 +6,7 @@ using std::endl;
 #include <fstream>
 using std::ifstream;
 #include <cstdlib> // for exit function
+#define PI 3.141592653589793
 
 CameraParam::CameraParam(char* calibFilename)
 {
@@ -60,9 +61,10 @@ double CameraParam::Get_alpha_c(void)
 
 void CameraParam::Update_R_T(CameraPose::Pose & pose)
 {
-	T = (cv::Mat_<double>(3,1) << pose.x, pose.y, pose.z);
-	T_x = (cv::Mat_<double>(3,3) << 0.f, -pose.z, pose.y,
-									pose.z, 0.f, -pose.x,
+	double camera_z = 0.4;
+	T = (cv::Mat_<double>(3,1) << pose.x, pose.y, pose.z+camera_z); // offset for camera
+	T_x = (cv::Mat_<double>(3,3) << 0.f, -pose.z-camera_z, pose.y,
+									pose.z+camera_z, 0.f, -pose.x,
 									-pose.y, pose.x, 0.f	);
 	double a = pose.yaw;
 	double b = pose.pitch;
@@ -72,15 +74,19 @@ void CameraParam::Update_R_T(CameraPose::Pose & pose)
 									sin(a)*cos(b), sin(a)*sin(b)*sin(c)+cos(a)*cos(c), sin(a)*sin(b)*cos(c)-cos(a)*sin(c),
 									-sin(b),	   cos(b)*sin(c),					   cos(b)*cos(c)					);
 
-	RT = (cv::Mat_<double>(4,4) <<	cos(a)*cos(b), cos(a)*sin(b)*sin(c)-sin(a)*cos(c), cos(a)*sin(b)*cos(c)+sin(a)*sin(c), pose.x,
+	/*RT = (cv::Mat_<double>(4,4) <<	cos(a)*cos(b), cos(a)*sin(b)*sin(c)-sin(a)*cos(c), cos(a)*sin(b)*cos(c)+sin(a)*sin(c), pose.x,
 									sin(a)*cos(b), sin(a)*sin(b)*sin(c)+cos(a)*cos(c), sin(a)*sin(b)*cos(c)-cos(a)*sin(c), pose.y,
 									-sin(b),	   cos(b)*sin(c),					   cos(b)*cos(c),					   pose.z,
-									0.0,		   0.0,								   0.0,								   1.0	);
+									0.0,		   0.0,								   0.0,								   1.0	);*/
+	cv::Mat eyeT = (cv::Mat_<double>(3,4) << 1, 0, 0, pose.x, 0, 1, 0, pose.y, 0, 0, 1, pose.z);
+	cv::Mat Rtransposed = cv::Mat(3,3,CV_64F);
+	cv::transpose(R,Rtransposed);
+	RT = Rtransposed*eyeT;
 
 	cv::Mat I = (cv::Mat_<double>(3,4) << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
 		
 	// K*[ eye(3) zeros(3,1) ]*RT;
-	P = K*I*RT;
+	P = K*RT;
 
 #ifdef DEBUG_LEVEL1
 	cout.fixed;
@@ -95,11 +101,11 @@ void CameraParam::Update_R_T(CameraPose::Pose & pose)
 	cout << R.at<double>(1,0) << "\t" << R.at<double>(1,1) << "\t" << R.at<double>(1,2) << endl;
 	cout << R.at<double>(2,0) << "\t" << R.at<double>(2,1) << "\t" << R.at<double>(2,2) << endl;
 
-	cout << endl << "RT Matrix:" << endl;
+	/*cout << endl << "RT Matrix:" << endl;
 	cout << RT.at<double>(0,0) << "\t" << RT.at<double>(0,1) << "\t" << RT.at<double>(0,2) << "\t" << RT.at<double>(0,3) << endl;
 	cout << RT.at<double>(1,0) << "\t" << RT.at<double>(1,1) << "\t" << RT.at<double>(1,2) << "\t" << RT.at<double>(1,3) << endl;
 	cout << RT.at<double>(2,0) << "\t" << RT.at<double>(2,1) << "\t" << RT.at<double>(2,2) << "\t" << RT.at<double>(2,3) << endl;
-	cout << RT.at<double>(3,0) << "\t\t" << RT.at<double>(3,1) << "\t\t" << RT.at<double>(3,2) << "\t\t" << RT.at<double>(3,3) << endl;
+	cout << RT.at<double>(3,0) << "\t\t" << RT.at<double>(3,1) << "\t\t" << RT.at<double>(3,2) << "\t\t" << RT.at<double>(3,3) << endl;*/
 
 	cout << endl << "P Matrix:" << endl;
 	cout << P.at<double>(0,0) << "\t" << P.at<double>(0,1) << "\t" << P.at<double>(0,2) << "\t" << P.at<double>(0,3) << endl;
