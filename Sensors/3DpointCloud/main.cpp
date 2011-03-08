@@ -277,7 +277,7 @@ void RunRealtime()
 		}
 
 		// Start of my stuff
-		if (timestamp != oldtimestamp && !cameraParam->K.empty() && !cameraParam->RT.empty())
+		if (timestamp != oldtimestamp && !cameraParam->K.empty() && !cameraParam->RT.empty() && oldtimestamp > 0)
 		{
 			/*FeatureSet features1;
 			computeFeatures ( resize, features1, 1 );*/
@@ -294,8 +294,29 @@ void RunRealtime()
 			origin2d = nextP*origin;
 			int orix = origin2d.at<double>(0,0)/origin2d.at<double>(2,0);
 			int oriy = origin2d.at<double>(1,0)/origin2d.at<double>(2,0);
-			if (abs(orix) < 640 && abs(oriy) < 480)
+			if (abs(orix) < 640 && abs(oriy) < 480 && orix > 0)
+			{
 				cvRectangle( resize, cvPoint(orix-10,oriy-10), cvPoint(orix+10,oriy+10),cvScalar(255,0,0) );
+
+				cv::Mat onex =  (cv::Mat_<double>(4,1) << 0.5, 0.0, 0.0, 1.0);
+				cv::Mat oney =  (cv::Mat_<double>(4,1) << 0.0, 0.5, 0.0, 1.0);
+				cv::Mat onez =  (cv::Mat_<double>(4,1) << 0.0, 0.0, 0.5, 1.0);
+				cv::Mat onex2d = cv::Mat(3,1,CV_64F);
+				cv::Mat oney2d = cv::Mat(3,1,CV_64F);
+				cv::Mat onez2d = cv::Mat(3,1,CV_64F);
+				onex2d = nextP*onex;
+				oney2d = nextP*oney;
+				onez2d = nextP*onez;
+				int onexpx = onex2d.at<double>(0,0)/onex2d.at<double>(2,0);
+				int onexpy = onex2d.at<double>(1,0)/onex2d.at<double>(2,0);
+				int oneypx = oney2d.at<double>(0,0)/oney2d.at<double>(2,0);
+				int oneypy = oney2d.at<double>(1,0)/oney2d.at<double>(2,0);
+				int onezpx = onez2d.at<double>(0,0)/onez2d.at<double>(2,0);
+				int onezpy = onez2d.at<double>(1,0)/onez2d.at<double>(2,0);
+				cvLine( resize, cvPoint(orix,oriy), cvPoint(onexpx,onexpy), cvScalar(255,0,0));
+				cvLine( resize, cvPoint(orix,oriy), cvPoint(oneypx,oneypy), cvScalar(0,255,0));
+				cvLine( resize, cvPoint(orix,oriy), cvPoint(onezpx,onezpy), cvScalar(0,0,255));
+			}
 			
 			if (!prevP.empty())
 			{
@@ -312,15 +333,15 @@ void RunRealtime()
 				}
 				for ( int i = 0; i < prevPts.size (); ++i )
 				{
-					if (status[i])// && err[i] < 150.f)
+					if (status[i] && err[i] < 50.f)
 					{
 						int px = prevPts[i].x;
 						int py = prevPts[i].y;
 						int nx = nextPts[i].x;
 						int ny = nextPts[i].y;
 						int d = (px-nx)*(px-nx)+(py-ny)*(py-ny);
-						if (d < 225)
-						{
+						/*if (d < 1000)
+						{*/
 							cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
 
 							// Triangulation using P and feature correspondence
@@ -346,17 +367,12 @@ void RunRealtime()
 							double ox = threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0);
 							double oy = threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0);
 							double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
-							//if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
-							output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t" ;
-							output << A.at<double> (0,0) << "\t" << A.at<double> (0,1) << "\t" << A.at<double> (0,2) << "\t" << A.at<double> (0,3)
-								<< "\t" << A.at<double> (1,0) << "\t" << A.at<double> (1,1) << "\t" << A.at<double> (1,2) << "\t" << A.at<double> (1,3)
-								<< "\t" << A.at<double> (2,0) << "\t" << A.at<double> (2,1) << "\t" << A.at<double> (2,2) << "\t" << A.at<double> (2,3)
-								<< "\t" << A.at<double> (3,0) << "\t" << A.at<double> (3,1) << "\t" << A.at<double> (3,2) << "\t" << A.at<double> (3,3) << "\t";
-							/*output << prevP.at<double> (0,0) << "\t" << prevP.at<double> (0,1) << "\t" << prevP.at<double> (0,2) << "\t" << prevP.at<double> (0,3)
-						   << "\t" << prevP.at<double> (1,0) << "\t" << prevP.at<double> (1,1) << "\t" << prevP.at<double> (1,2) << "\t" << prevP.at<double> (1,3)
-						   << "\t" << prevP.at<double> (2,0) << "\t" << prevP.at<double> (2,1) << "\t" << prevP.at<double> (2,2) << "\t" << prevP.at<double> (2,3) << "\t";*/
+							if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
+							{
+								output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
 								output << ox << "\t" << oy << "\t" << oz << endl;
-						}
+							}
+						//}
 					}
 				}
 				
