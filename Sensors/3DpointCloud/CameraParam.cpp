@@ -77,23 +77,6 @@ void CameraParam::Update_R_T(CameraPose::Pose & pose)
 	FindR(pose.yaw, pose.pitch, pose.roll).copyTo(Rwr);
 	FindR(-PI/2, 0.0, PI/2).copyTo(Rrc);
 
-	/*RT = (cv::Mat_<double>(4,4) <<	cos(a)*cos(b), cos(a)*sin(b)*sin(c)-sin(a)*cos(c), cos(a)*sin(b)*cos(c)+sin(a)*sin(c), pose.x,
-									sin(a)*cos(b), sin(a)*sin(b)*sin(c)+cos(a)*cos(c), sin(a)*sin(b)*cos(c)-cos(a)*sin(c), pose.y,
-									-sin(b),	   cos(b)*sin(c),					   cos(b)*cos(c),					   pose.z,
-									0.0,		   0.0,								   0.0,								   1.0	);*/
-	/*cv::Mat RTwr = cv::Mat::zeros(4,4,CV_64F);
-	Rwr.copyTo(RTwr(cv::Rect(0,0,3,3)));
-	Twr.copyTo(RTwr(cv::Rect(3,0,1,3)));
-	RTwr.at<double> (3,3) = 1.0;
-
-	cv::Mat RTrc = cv::Mat::zeros(4,4,CV_64F);
-	Rrc.copyTo(RTrc(cv::Rect(0,0,3,3)));
-	Trc.copyTo(RTrc(cv::Rect(3,0,1,3)));
-	RTrc.at<double> (3,3) = 1.0;*/
-
-	/*cv::Mat eyeTwr = (cv::Mat_<double>(3,4) << 1, 0, 0, pose.x, 0, 1, 0, pose.y, 0, 0, 1, pose.z);
-	cv::Mat eyeTrc = (cv::Mat_<double>(3,4) << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, camera_z);*/
-	
 	cv::Mat RwrT = cv::Mat(3,3,CV_64F);
 	cv::Mat RrcT = cv::Mat(3,3,CV_64F);
 	cv::transpose(Rwr,RwrT);
@@ -142,6 +125,71 @@ cv::Mat CameraParam::FindR(double yaw, double pitch, double roll)
 		-sin(pitch),		 cos(pitch)*sin(roll),							   cos(pitch)*cos(roll)					);
 
 	return rotationM;
+}
+
+cv::Mat CameraParam::GetFfromP(cv::Mat & P1, cv::Mat & P2)
+{
+	cv::Mat F = cv::Mat(3,3,CV_64F);
+	cv::Mat X1 = cv::Mat(2,4,CV_64F);
+	cv::Mat X2 = cv::Mat(2,4,CV_64F);
+	cv::Mat X3 = cv::Mat(2,4,CV_64F);
+	cv::Mat Y1 = cv::Mat(2,4,CV_64F);
+	cv::Mat Y2 = cv::Mat(2,4,CV_64F);
+	cv::Mat Y3 = cv::Mat(2,4,CV_64F);
+
+	P1(cv::Rect(0,1,4,2)).copyTo(X1);		// X1 = P1([2 3],:);
+	P1(cv::Rect(0,2,4,1)).copyTo(X2(cv::Rect(0,0,4,1)));	// X2 = P1([3 1],:);
+	P1(cv::Rect(0,0,4,1)).copyTo(X2(cv::Rect(0,1,4,1)));
+	P1(cv::Rect(0,0,4,2)).copyTo(X3);		// X3 = P1([1 2],:);
+
+	P2(cv::Rect(0,1,4,2)).copyTo(Y1);		// Y1 = P2([2 3],:);
+	P2(cv::Rect(0,2,4,1)).copyTo(Y2(cv::Rect(0,0,4,1)));	// Y2 = P2([3 1],:);
+	P2(cv::Rect(0,0,4,1)).copyTo(Y2(cv::Rect(0,1,4,1)));
+	P2(cv::Rect(0,0,4,2)).copyTo(Y3);		// Y3 = P2([1 2],:);
+
+	cv::Mat fDet = cv::Mat(4,4,CV_64F);
+	X1.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y1.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (0,0) = cv::determinant(fDet);	// det([X1; Y1])
+
+	X2.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y1.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (0,1) = cv::determinant(fDet);	// det([X2; Y1])
+
+	X3.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y1.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (0,2) = cv::determinant(fDet);	// det([X3; Y1])
+
+	X1.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y2.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (1,0) = cv::determinant(fDet);	// det([X1; Y2])
+
+	X2.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y2.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (1,1) = cv::determinant(fDet);	// det([X2; Y2])
+
+	X3.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y2.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (1,2) = cv::determinant(fDet);	// det([X3; Y2])
+
+	X1.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y3.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (2,0) = cv::determinant(fDet);	// det([X1; Y3])
+
+	X2.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y3.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (2,1) = cv::determinant(fDet);	// det([X2; Y3])
+
+	X3.copyTo(fDet(cv::Rect(0,0,4,2)));
+	Y3.copyTo(fDet(cv::Rect(0,2,4,2)));
+	F.at<double> (2,2) = cv::determinant(fDet);	// det([X3; Y3])
+
+	cout << endl << "F Matrix:" << endl;
+	cout << F.at<double>(0,0) << "\t" << F.at<double>(0,1) << "\t" << F.at<double>(0,2) << endl;
+	cout << F.at<double>(1,0) << "\t" << F.at<double>(1,1) << "\t" << F.at<double>(1,2) << endl;
+	cout << F.at<double>(2,0) << "\t" << F.at<double>(2,1) << "\t" << F.at<double>(2,2) << endl;
+
+	return F;
 }
 
 cv::Mat CameraParam::FindProjection(void)

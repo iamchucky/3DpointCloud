@@ -27,6 +27,7 @@ public:
 
 	void Update_R_T(CameraPose::Pose & pose);
 	cv::Mat FindR(double yaw, double pitch, double roll);
+	cv::Mat GetFfromP(cv::Mat & P1, cv::Mat & P2);
 	cv::Mat FindProjection();
 
 	cv::Mat K;
