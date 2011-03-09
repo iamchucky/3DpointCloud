@@ -35,6 +35,7 @@ using namespace std;
 #define WIDTH 640
 #define HEIGHT 480
 #define CHANNELS 1
+#define USE_F_GUIDED_SIFT false
 
 char camName[]="Global\\CamMappingObject";
 HANDLE hMapFile=NULL;
@@ -418,22 +419,28 @@ void RunRealtime()
 
 					//match and get result.    
 					int (*match_buf)[2] = new int[num1][2];
+					int num_match = 0;
 					//use the default thresholds. Check the declaration in SiftGPU.h
-					/*int num_match = matcher->GetSiftMatch(num1, match_buf);
-					std::cout << num_match << " sift matches were found;\n";*/
-
-					//*****************GPU Guided SIFT MATCHING***************
-					//example: define a homography, and use default threshold 32 to search in a 64x64 window
-					//float h[3][3] = {{0.8f, 0, 0}, {0, 0.8f, 0}, {0, 0, 1.0f}};
-					cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
-					float f[3][3] = {{F.at<double>(0,0), F.at<double>(0,1), F.at<double>(0,2)}, 
-									 {F.at<double>(1,0), F.at<double>(1,1), F.at<double>(1,2)},
-									 {F.at<double>(2,0), F.at<double>(2,1), F.at<double>(2,2)}};
-					matcher->SetFeatureLocation(0, &keys1[0]); //SetFeatureLocaiton after SetDescriptors
-					matcher->SetFeatureLocation(1, &keys2[0]);
-					int num_match = matcher->GetGuidedSiftMatch(num1, match_buf, NULL, f);
-					std::cout << num_match << " guided sift matches were found;\n";
-					//if you can want to use a Fundamental matrix, check the function definition
+					if (!USE_F_GUIDED_SIFT)
+					{
+						num_match = matcher->GetSiftMatch(num1, match_buf);
+						std::cout << num_match << " sift matches were found;\n";
+					}
+					else
+					{
+						//*****************GPU Guided SIFT MATCHING***************
+						//example: define a homography, and use default threshold 32 to search in a 64x64 window
+						//float h[3][3] = {{0.8f, 0, 0}, {0, 0.8f, 0}, {0, 0, 1.0f}};
+						cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
+						float f[3][3] = {{F.at<double>(0,0), F.at<double>(0,1), F.at<double>(0,2)}, 
+										 {F.at<double>(1,0), F.at<double>(1,1), F.at<double>(1,2)},
+										 {F.at<double>(2,0), F.at<double>(2,1), F.at<double>(2,2)}};
+						matcher->SetFeatureLocation(0, &keys1[0]); //SetFeatureLocaiton after SetDescriptors
+						matcher->SetFeatureLocation(1, &keys2[0]);
+						num_match = matcher->GetGuidedSiftMatch(num1, match_buf, NULL, f);
+						std::cout << num_match << " guided sift matches were found;\n";
+						//if you can want to use a Fundamental matrix, check the function definition
+					}
     
 					//enumerate all the feature matches
 					for(int i  = 0; i < num_match; ++i)
