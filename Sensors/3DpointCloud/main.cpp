@@ -45,6 +45,7 @@ char calibFilename[]="calib\\PGR_FireFlyMV.cal";
 char outputFilename[]="3D\\output.txt";
 
 CameraPose* cameraPose;
+CameraPose::Pose prevPose;
 CameraParam * cameraParam;
 
 int robotID;
@@ -65,12 +66,13 @@ cv::Mat nextP;
 cv::Mat threeDcoord;
 ofstream output;
 
-bool doF = false;
+bool gotDisparity = false;
+bool goneOnce = false;
 SiftGPU  *sift;
 SiftMatchGPU *matcher;
 vector<float > descriptors1(1), descriptors2(1);
 vector<SiftGPU::SiftKeypoint> keys1(1), keys2(1);    
-int num1, num2 = 0;
+int num1 = 0, num2 = 0;
 
 CONSOLE_SCREEN_BUFFER_INFO startConsoleInfo;
 
@@ -168,10 +170,33 @@ void GetConsoleCursorPosition()
 
 void PoseCallback(RobotPoseMsg pmsg, CameraPose* cameraPose, void* data)
 {
-#ifdef DEBUG_LEVEL1
-	ClearScreen(false);
-#endif
-	cameraParam->Update_R_T(cameraPose->pose);
+//#ifdef DEBUG_LEVEL1
+//	ClearScreen(false);
+//#endif
+	/*double t = cameraPose->pose.timestamp;
+	t = t*1000.0;
+	int roundt = (int)t%100;
+	if (roundt < 20)*/
+		cameraParam->Update_R_T(cameraPose->pose);
+	/*if (!goneOnce)
+	{
+		prevPose.x = cameraPose->pose.x;
+		prevPose.y = cameraPose->pose.y;
+		prevPose.yaw = (cameraPose->pose.yaw < 0)? cameraPose->pose.yaw+2.0*3.1415:cameraPose->pose.yaw;
+		goneOnce = true;
+	}
+	else
+	{
+		double d = pow(cameraPose->pose.x-prevPose.x,2.0)+pow(cameraPose->pose.y-prevPose.y,2.0);
+		double dyaw = prevPose.yaw-((cameraPose->pose.yaw < 0)? (cameraPose->pose.yaw+2.0*3.1415):cameraPose->pose.yaw);
+		if (d > 0.25 && abs(dyaw) < 0.1)
+		{
+			prevPose.x = cameraPose->pose.x;
+			prevPose.y = cameraPose->pose.y;
+			prevPose.yaw = cameraPose->pose.yaw;
+			gotDisparity = true;
+		}
+	}*/
 }
 
 void InitCommon ()
@@ -179,10 +204,10 @@ void InitCommon ()
 	cout << endl << "Loading camera intrinsic parameters: " << endl;
 	cameraParam = new CameraParam(calibFilename);	// Load camera intrinsic parameters (loaded K)
 
+	GetConsoleCursorPosition();
+
 	cameraPose = new CameraPose();
 	cameraPose->SetCallback(PoseCallback, NULL);
-
-	GetConsoleCursorPosition();
 
 	img = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,CHANNELS);
 	resize = cvCreateImage (cvSize(WIDTH,HEIGHT),IPL_DEPTH_8U,3);
@@ -192,6 +217,10 @@ void InitCommon ()
 	threeDcoord = cv::Mat(4,1,CV_64F);
 	/*prevP = cv::Mat(3,4,CV_64F);
 	nextP = cv::Mat(3,4,CV_64F);*/
+
+	prevPose.x = 0.0;
+	prevPose.y = 0.0;
+	prevPose.yaw = 0.0;
 
 	// SIFTGPU stuff
 	sift = new SiftGPU;
@@ -272,6 +301,59 @@ bool GetCameraInput()
 		cvCvtColor(resize,resizeBW,CV_BGR2GRAY);
 	}
 }
+void PlotOrigin(cv::Mat & P)
+{
+	cv::Mat origin =  (cv::Mat_<double>(4,1) << 0.0, 0.0, 0.0, 1.0);
+	cv::Mat origin2d = cv::Mat(3,1,CV_64F);
+	origin2d = P*origin;
+	int orix = origin2d.at<double>(0,0)/origin2d.at<double>(2,0);
+	int oriy = origin2d.at<double>(1,0)/origin2d.at<double>(2,0);
+	if (abs(orix) < 640 && abs(oriy) < 480 && orix > 0)
+	{
+		cvRectangle( resize, cvPoint(orix-10,oriy-10), cvPoint(orix+10,oriy+10),cvScalar(255,0,0) );
+
+		cv::Mat onex =  (cv::Mat_<double>(4,1) << 0.5, 0.0, 0.0, 1.0);
+		cv::Mat oney =  (cv::Mat_<double>(4,1) << 0.0, 0.5, 0.0, 1.0);
+		cv::Mat onez =  (cv::Mat_<double>(4,1) << 0.0, 0.0, 0.5, 1.0);
+		cv::Mat onex2d = cv::Mat(3,1,CV_64F);
+		cv::Mat oney2d = cv::Mat(3,1,CV_64F);
+		cv::Mat onez2d = cv::Mat(3,1,CV_64F);
+		onex2d = nextP*onex;
+		oney2d = nextP*oney;
+		onez2d = nextP*onez;
+		int onexpx = onex2d.at<double>(0,0)/onex2d.at<double>(2,0);
+		int onexpy = onex2d.at<double>(1,0)/onex2d.at<double>(2,0);
+		int oneypx = oney2d.at<double>(0,0)/oney2d.at<double>(2,0);
+		int oneypy = oney2d.at<double>(1,0)/oney2d.at<double>(2,0);
+		int onezpx = onez2d.at<double>(0,0)/onez2d.at<double>(2,0);
+		int onezpy = onez2d.at<double>(1,0)/onez2d.at<double>(2,0);
+		cvLine( resize, cvPoint(orix,oriy), cvPoint(onexpx,onexpy), cvScalar(255,0,0));
+		cvLine( resize, cvPoint(orix,oriy), cvPoint(oneypx,oneypy), cvScalar(0,255,0));
+		cvLine( resize, cvPoint(orix,oriy), cvPoint(onezpx,onezpy), cvScalar(0,0,255));
+	}
+}
+
+void PlotEpiline(cv::Mat & F, std::vector<cv::Point2f> points)
+{
+	for ( int i = 0; i < points.size (); ++i )
+	{
+		int px = points[i].x;
+		int py = points[i].y;
+		cv::Mat p = (cv::Mat_<double>(3,1) << px, py, 1);
+		for ( int qy = 0; qy < resize->height; ++qy)
+		{
+			for ( int qx = 0; qx < resize->width; ++qx)
+			{
+				cv::Mat qT = (cv::Mat_<double>(1,3) << qx, qy, 1);
+				cv::Mat result = qT*F*p;
+				if (abs(result.at<double> (0,0)) < 0.5)
+				{
+					CV_IMAGE_ELEM(resize, char, qy, qx) = 255;
+				}
+			}
+		}
+	}
+}
 
 void RunRealtime()
 {	 
@@ -301,187 +383,140 @@ void RunRealtime()
 		}
 
 		// Start of my stuff
-		if (timestamp != oldtimestamp && !cameraParam->K.empty() && !cameraParam->RT.empty() && oldtimestamp > 0)
+		if (timestamp != oldtimestamp && !cameraParam->K.empty() && !cameraParam->RT.empty() && oldtimestamp > 0 )//&& gotDisparity)
 		{
-			// Start of SIFTGPU stuff
-			if (sift->RunSIFT(resize->width, resize->height, resize->imageData, 0x80E0, 0x1401))
-			{
-				//get feature count
-				num2 = sift->GetFeatureNum();
-				//allocate memory
-				keys2.resize(num2);    descriptors2.resize(128*num2);
-				//reading back feature vectors is faster than writing files
-				//if you dont need keys or descriptors, just put NULLs here
-				sift->GetFeatureVector(&keys2[0], &descriptors2[0]);
-			}
-			if (num1 == 0)
-			{
-				num1 = sift->GetFeatureNum();
-				keys1.resize(num1);    descriptors1.resize(128*num1);
-				sift->GetFeatureVector(&keys1[0], &descriptors1[0]);
-			}
-			else
-			{
-
-			//Verify current OpenGL Context and initialize the Matcher;
-			//If you don't have an OpenGL Context, call matcher->CreateContextGL instead;
-			matcher->VerifyContextGL(); //must call once
-
-			//Set descriptors to match, the first argument must be either 0 or 1
-			//if you want to use more than 4096 or less than 4096
-			//call matcher->SetMaxSift() to change the limit before calling setdescriptor
-			matcher->SetDescriptors(0, num1, &descriptors1[0]); //image 1
-			matcher->SetDescriptors(1, num2, &descriptors2[0]); //image 2
-
-			//match and get result.    
-			int (*match_buf)[2] = new int[num1][2];
-			//use the default thresholds. Check the declaration in SiftGPU.h
-			int num_match = matcher->GetSiftMatch(num1, match_buf);
-			std::cout << num_match << " sift matches were found;\n";
-    
-			//enumerate all the feature matches
-			for(int i  = 0; i < num_match; ++i)
-			{
-				//How to get the feature matches: 
-				//SiftGPU::SiftKeypoint & key1 = keys1[match_buf[i][0]];
-				//SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
-				//key1 in the first image matches with key2 in the second image
-			}
-			
-			delete[] match_buf;
-
-			// End of SIFTGPU stuff
-			/*FeatureSet features1;
-			computeFeatures ( resize, features1, 1 );*/
-			std::vector<cv::KeyPoint> keypoints;
-			cv::Mat descriptors;
+			ClearScreen(false);
+			double dt = timestamp-cameraPose->pose.timestamp;
+			cout << "timestamp diff: " << dt << endl;
+			//gotDisparity = false;
 			nextP = cameraParam->P.clone();
-			cv::FAST(resizeBW,keypoints,50);
-
-			vector <uchar> status;
-			vector <float> err;
-			
-			cv::Mat origin =  (cv::Mat_<double>(4,1) << 0.0, 0.0, 0.0, 1.0);
-			cv::Mat origin2d = cv::Mat(3,1,CV_64F);
-			origin2d = nextP*origin;
-			int orix = origin2d.at<double>(0,0)/origin2d.at<double>(2,0);
-			int oriy = origin2d.at<double>(1,0)/origin2d.at<double>(2,0);
-			if (abs(orix) < 640 && abs(oriy) < 480 && orix > 0)
+			// Start of SIFTGPU stuff
+			if (1)
 			{
-				cvRectangle( resize, cvPoint(orix-10,oriy-10), cvPoint(orix+10,oriy+10),cvScalar(255,0,0) );
-
-				cv::Mat onex =  (cv::Mat_<double>(4,1) << 0.5, 0.0, 0.0, 1.0);
-				cv::Mat oney =  (cv::Mat_<double>(4,1) << 0.0, 0.5, 0.0, 1.0);
-				cv::Mat onez =  (cv::Mat_<double>(4,1) << 0.0, 0.0, 0.5, 1.0);
-				cv::Mat onex2d = cv::Mat(3,1,CV_64F);
-				cv::Mat oney2d = cv::Mat(3,1,CV_64F);
-				cv::Mat onez2d = cv::Mat(3,1,CV_64F);
-				onex2d = nextP*onex;
-				oney2d = nextP*oney;
-				onez2d = nextP*onez;
-				int onexpx = onex2d.at<double>(0,0)/onex2d.at<double>(2,0);
-				int onexpy = onex2d.at<double>(1,0)/onex2d.at<double>(2,0);
-				int oneypx = oney2d.at<double>(0,0)/oney2d.at<double>(2,0);
-				int oneypy = oney2d.at<double>(1,0)/oney2d.at<double>(2,0);
-				int onezpx = onez2d.at<double>(0,0)/onez2d.at<double>(2,0);
-				int onezpy = onez2d.at<double>(1,0)/onez2d.at<double>(2,0);
-				cvLine( resize, cvPoint(orix,oriy), cvPoint(onexpx,onexpy), cvScalar(255,0,0));
-				cvLine( resize, cvPoint(orix,oriy), cvPoint(oneypx,oneypy), cvScalar(0,255,0));
-				cvLine( resize, cvPoint(orix,oriy), cvPoint(onezpx,onezpy), cvScalar(0,0,255));
-			}
-			
-			if (!prevP.empty() && doF)
-			{
-				cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
-
-				for ( int i = 0; i < prevPts.size (); ++i )
+				gotDisparity = false;
+				if (sift->RunSIFT(resize->width, resize->height, resize->imageData, 0x80E0, 0x1401))
 				{
-					int px = prevPts[i].x;
-					int py = prevPts[i].y;
-					cv::Mat p = (cv::Mat_<double>(3,1) << px, py, 1);
-					for ( int qy = 0; qy < resize->height; ++qy)
+					//get feature count
+					num2 = sift->GetFeatureNum();
+					//allocate memory
+					keys2.resize(num2);    descriptors2.resize(128*num2);
+					//reading back feature vectors is faster than writing files
+					//if you dont need keys or descriptors, just put NULLs here
+					sift->GetFeatureVector(&keys2[0], &descriptors2[0]);
+				}
+				if (num1 > 0)
+				{
+					//Verify current OpenGL Context and initialize the Matcher;
+					//If you don't have an OpenGL Context, call matcher->CreateContextGL instead;
+					matcher->VerifyContextGL(); //must call once
+
+					//Set descriptors to match, the first argument must be either 0 or 1
+					//if you want to use more than 4096 or less than 4096
+					//call matcher->SetMaxSift() to change the limit before calling setdescriptor
+					matcher->SetDescriptors(0, num1, &descriptors1[0]); //image 1
+					matcher->SetDescriptors(1, num2, &descriptors2[0]); //image 2
+
+					//match and get result.    
+					int (*match_buf)[2] = new int[num1][2];
+					//use the default thresholds. Check the declaration in SiftGPU.h
+					/*int num_match = matcher->GetSiftMatch(num1, match_buf);
+					std::cout << num_match << " sift matches were found;\n";*/
+
+					//*****************GPU Guided SIFT MATCHING***************
+					//example: define a homography, and use default threshold 32 to search in a 64x64 window
+					//float h[3][3] = {{0.8f, 0, 0}, {0, 0.8f, 0}, {0, 0, 1.0f}};
+					cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
+					float f[3][3] = {{F.at<double>(0,0), F.at<double>(0,1), F.at<double>(0,2)}, 
+									 {F.at<double>(1,0), F.at<double>(1,1), F.at<double>(1,2)},
+									 {F.at<double>(2,0), F.at<double>(2,1), F.at<double>(2,2)}};
+					matcher->SetFeatureLocation(0, &keys1[0]); //SetFeatureLocaiton after SetDescriptors
+					matcher->SetFeatureLocation(1, &keys2[0]);
+					int num_match = matcher->GetGuidedSiftMatch(num1, match_buf, NULL, f);
+					std::cout << num_match << " guided sift matches were found;\n";
+					//if you can want to use a Fundamental matrix, check the function definition
+    
+					//enumerate all the feature matches
+					for(int i  = 0; i < num_match; ++i)
 					{
-						for ( int qx = 0; qx < resize->width; ++qx)
+						//How to get the feature matches: 
+						SiftGPU::SiftKeypoint & key1 = keys1[match_buf[i][0]];
+						SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
+						//key1 in the first image matches with key2 in the second image
+
+						if (!prevP.empty())
 						{
-							cv::Mat qT = (cv::Mat_<double>(1,3) << qx, qy, 1);
+							//cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
+							/*cv::Mat p = (cv::Mat_<double>(3,1) << key1.x, key1.y, 1);
+							cv::Mat qT = (cv::Mat_<double>(1,3) << key2.x, key2.y, 1);
 							cv::Mat result = qT*F*p;
-							if (abs(result.at<double> (0,0)) < 0.5)
+							double resultd = abs(result.at<double> (0,0));
+							if (resultd > 100)
 							{
-								CV_IMAGE_ELEM(resize, char, qy, qx) = 255;
+								continue;
+							}*/
+
+							cvRectangle( resize, cvPoint(key2.x-2,key2.y-2), cvPoint(key2.x+2,key2.y+2),cvScalar(0,0,255) );
+
+							int px = key1.x;
+							int py = key1.y;
+							int nx = key2.x;
+							int ny = key2.y;
+							cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
+
+							// Triangulation using P and feature correspondence
+							// prevP
+							// cameraParam->P
+							// prevPts
+							// nextPts
+							cv::Mat A = (cv::Mat_<double>(4,4) <<	
+								prevP.at<double>(2,0)*px-prevP.at<double>(0,0), prevP.at<double>(2,1)*px-prevP.at<double>(0,1), prevP.at<double>(2,2)*px-prevP.at<double>(0,2), prevP.at<double>(2,3)*px-prevP.at<double>(0,3),
+								prevP.at<double>(2,0)*py-prevP.at<double>(1,0), prevP.at<double>(2,1)*py-prevP.at<double>(1,1), prevP.at<double>(2,2)*py-prevP.at<double>(1,2), prevP.at<double>(2,3)*py-prevP.at<double>(1,3),
+								nextP.at<double>(2,0)*nx-nextP.at<double>(0,0), nextP.at<double>(2,1)*nx-nextP.at<double>(0,1), nextP.at<double>(2,2)*nx-nextP.at<double>(0,2), nextP.at<double>(2,3)*nx-nextP.at<double>(0,3),
+								nextP.at<double>(2,0)*ny-nextP.at<double>(1,0), nextP.at<double>(2,1)*ny-nextP.at<double>(1,1), nextP.at<double>(2,2)*ny-nextP.at<double>(1,2), nextP.at<double>(2,3)*ny-nextP.at<double>(1,3)	);
+							//cv::Mat B = cv::Mat::zeros(4,1,CV_64F);
+							//cv::solve(A,B,threeDcoord,cv::DECOMP_SVD);
+							cv::SVD::solveZ(A, threeDcoord);
+
+							double ox = threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0);
+							double oy = threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0);
+							double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
+							if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
+							{
+								output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
+								output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t";
+								output << prevP.at<double>(0,0) << "\t" << prevP.at<double>(0,1) << "\t" << prevP.at<double>(0,2) << "\t" << prevP.at<double>(0,3) << "\t";
+								output << prevP.at<double>(1,0) << "\t" << prevP.at<double>(1,1) << "\t" << prevP.at<double>(1,2) << "\t" << prevP.at<double>(1,3) << "\t";
+								output << prevP.at<double>(2,0) << "\t" << prevP.at<double>(2,1) << "\t" << prevP.at<double>(2,2) << "\t" << prevP.at<double>(2,3) << "\t";
+
+								output << nextP.at<double>(0,0) << "\t" << nextP.at<double>(0,1) << "\t" << nextP.at<double>(0,2) << "\t" << nextP.at<double>(0,3) << "\t";
+								output << nextP.at<double>(1,0) << "\t" << nextP.at<double>(1,1) << "\t" << nextP.at<double>(1,2) << "\t" << nextP.at<double>(1,3) << "\t";
+								output << nextP.at<double>(2,0) << "\t" << nextP.at<double>(2,1) << "\t" << nextP.at<double>(2,2) << "\t" << nextP.at<double>(2,3) << "\t";
+								output << A.at<double>(0,0) << "\t" << A.at<double>(0,1) << "\t" << A.at<double>(0,2) << "\t" << A.at<double>(0,3) << "\t";
+								output << A.at<double>(1,0) << "\t" << A.at<double>(1,1) << "\t" << A.at<double>(1,2) << "\t" << A.at<double>(1,3) << "\t";
+								output << A.at<double>(2,0) << "\t" << A.at<double>(2,1) << "\t" << A.at<double>(2,2) << "\t" << A.at<double>(2,3) << "\t";
+								output << A.at<double>(3,0) << "\t" << A.at<double>(3,1) << "\t" << A.at<double>(3,2) << "\t" << A.at<double>(3,3) << "\t";
+								output << ox << "\t" << oy << "\t" << oz << endl;
 							}
 						}
 					}
+			
+					delete[] match_buf;
 				}
-				
-				//cv::calcOpticalFlowPyrLK( prevImg, resizeBW, prevPts, nextPts, status, err);
-				///*cv::SIFT sift;
-				//sift ( resizeBW, cv::Mat (), keypoints, descriptors, true);*/
-				//int kx;
-				//int ky;
-				//for ( int i = 0; i < keypoints.size (); ++i )
-				//{
-				//	kx = keypoints[i].pt.x;
-				//	ky = keypoints[i].pt.y;
-				//	cvRectangle( resize, cvPoint(kx-2,ky-2), cvPoint(kx+2,ky+2),cvScalar(0,0,255) );
-				//}
-				//for ( int i = 0; i < prevPts.size (); ++i )
-				//{
-				//	if (status[i] && err[i] < 50.f)
-				//	{
-				//		int px = prevPts[i].x;
-				//		int py = prevPts[i].y;
-				//		int nx = nextPts[i].x;
-				//		int ny = nextPts[i].y;
-				//		int d = (px-nx)*(px-nx)+(py-ny)*(py-ny);
-				//		/*if (d < 1000)
-				//		{*/
-				//			cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
+				// End of SIFTGPU stuff
 
-				//			// Triangulation using P and feature correspondence
-				//			// prevP
-				//			// cameraParam->P
-				//			// prevPts
-				//			// nextPts
-				//			cv::Mat A = (cv::Mat_<double>(4,4) <<	
-				//				prevP.at<double>(2,0)*px-prevP.at<double>(0,0), prevP.at<double>(2,1)*px-prevP.at<double>(0,1), prevP.at<double>(2,2)*px-prevP.at<double>(0,2), prevP.at<double>(2,3)*px-prevP.at<double>(0,3),
-				//				prevP.at<double>(2,0)*py-prevP.at<double>(1,0), prevP.at<double>(2,1)*py-prevP.at<double>(1,1), prevP.at<double>(2,2)*py-prevP.at<double>(1,2), prevP.at<double>(2,3)*py-prevP.at<double>(1,3),
-				//				nextP.at<double>(2,0)*nx-nextP.at<double>(0,0), nextP.at<double>(2,1)*nx-nextP.at<double>(0,1), nextP.at<double>(2,2)*nx-nextP.at<double>(0,2), nextP.at<double>(2,3)*nx-nextP.at<double>(0,3),
-				//				nextP.at<double>(2,0)*ny-nextP.at<double>(1,0), nextP.at<double>(2,1)*ny-nextP.at<double>(1,1), nextP.at<double>(2,2)*ny-nextP.at<double>(1,2), nextP.at<double>(2,3)*ny-nextP.at<double>(1,3)	);
-				//			//cv::Mat B = cv::Mat::zeros(4,1,CV_64F);
-				//			//cv::solve(A,B,threeDcoord,cv::DECOMP_SVD);
-				//			cv::SVD::solveZ(A, threeDcoord);
-
-				//			/*ClearScreen(false);
-				//			cout << endl << "3D coord:" << endl;
-				//			cout << threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0) << endl;
-				//			cout << threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0) << endl;
-				//			cout << threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0) << endl;*/
-				//			//cout << threeDcoord.at<double>(3,0) << endl;
-				//			double ox = threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0);
-				//			double oy = threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0);
-				//			double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
-				//			if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
-				//			{
-				//				output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
-				//				output << ox << "\t" << oy << "\t" << oz << endl;
-				//			}
-				//		//}
-				//	}
-				//}
-
+			
+				if (num2 > 0)
+				{
+					num1 = sift->GetFeatureNum();
+					keys1.resize(num1);    descriptors1.resize(128*num1);
+					sift->GetFeatureVector(&keys1[0], &descriptors1[0]);
+				}
 			}
+
+			PlotOrigin(nextP);
+			
 			prevP = nextP.clone();
-			cvCopy(resizeBW,prevImg);
-			prevPts.resize(keypoints.size());
-			for (int n = 0; n < prevPts.size(); ++n)
-			{
-				prevPts[n].x = keypoints[n].pt.x;
-				prevPts[n].y = keypoints[n].pt.y;
-			}
-			
-
-			
-			
+			//cvCopy(resizeBW,prevImg);
 			// End of my stuff
 
 			// Display current camera view
@@ -494,7 +529,7 @@ void RunRealtime()
 			running=false;			
 		else if (key == 'c')
 		{
-			doF = true;
+			gotDisparity = true;
 		}
 		else if (key == 's')
 			hidedisplay = !hidedisplay;

@@ -34,7 +34,7 @@ CameraParam::CameraParam(char* calibFilename)
 
 	cout << K.at<double>(0,0) << "\t" << K.at<double>(0,1) << "\t" << K.at<double>(0,2) << endl;
 	cout << K.at<double>(1,0) << "\t" << K.at<double>(1,1) << "\t" << K.at<double>(1,2) << endl;
-	cout << K.at<double>(2,0) << "\t" << K.at<double>(2,1) << "\t" << K.at<double>(2,2) << endl << endl;
+	cout << K.at<double>(2,0) << "\t" << K.at<double>(2,1) << "\t" << K.at<double>(2,2) << endl;
 	
 }
 
@@ -91,30 +91,30 @@ void CameraParam::Update_R_T(CameraPose::Pose & pose)
 	// K*[ eye(3) zeros(3,1) ]*RT;
 	P = K*I*RT;
 
-#ifdef DEBUG_LEVEL1
-	cout.fixed;
-	cout.precision(9);
-	cout << endl << "Translation Matrix:" << endl;
-	cout << Twr.at<double>(0,0) << endl;
-	cout << Twr.at<double>(1,0) << endl;
-	cout << Twr.at<double>(2,0) << endl;
-
-	cout << endl << "Rotation Matrix:" << endl;
-	cout << Rwr.at<double>(0,0) << "\t" << Rwr.at<double>(0,1) << "\t" << Rwr.at<double>(0,2) << endl;
-	cout << Rwr.at<double>(1,0) << "\t" << Rwr.at<double>(1,1) << "\t" << Rwr.at<double>(1,2) << endl;
-	cout << Rwr.at<double>(2,0) << "\t" << Rwr.at<double>(2,1) << "\t" << Rwr.at<double>(2,2) << endl;
-
-	cout << endl << "RT Matrix:" << endl;
-	cout << RT.at<double>(0,0) << "\t" << RT.at<double>(0,1) << "\t" << RT.at<double>(0,2) << "\t" << RT.at<double>(0,3) << endl;
-	cout << RT.at<double>(1,0) << "\t" << RT.at<double>(1,1) << "\t" << RT.at<double>(1,2) << "\t" << RT.at<double>(1,3) << endl;
-	cout << RT.at<double>(2,0) << "\t" << RT.at<double>(2,1) << "\t" << RT.at<double>(2,2) << "\t" << RT.at<double>(2,3) << endl;
-	cout << RT.at<double>(3,0) << "\t\t" << RT.at<double>(3,1) << "\t\t" << RT.at<double>(3,2) << "\t\t" << RT.at<double>(3,3) << endl;
-
-	cout << endl << "P Matrix:" << endl;
-	cout << P.at<double>(0,0) << "\t" << P.at<double>(0,1) << "\t" << P.at<double>(0,2) << "\t" << P.at<double>(0,3) << endl;
-	cout << P.at<double>(1,0) << "\t" << P.at<double>(1,1) << "\t" << P.at<double>(1,2) << "\t" << P.at<double>(1,3) << endl;
-	cout << P.at<double>(2,0) << "\t" << P.at<double>(2,1) << "\t" << P.at<double>(2,2) << "\t" << P.at<double>(2,3) << endl;
-#endif
+//#ifdef DEBUG_LEVEL1
+//	cout.fixed;
+//	cout.precision(9);
+//	cout << endl << "Translation Matrix:" << endl;
+//	cout << Twr.at<double>(0,0) << endl;
+//	cout << Twr.at<double>(1,0) << endl;
+//	cout << Twr.at<double>(2,0) << endl;
+//
+//	cout << endl << "Rotation Matrix:" << endl;
+//	cout << Rwr.at<double>(0,0) << "\t" << Rwr.at<double>(0,1) << "\t" << Rwr.at<double>(0,2) << endl;
+//	cout << Rwr.at<double>(1,0) << "\t" << Rwr.at<double>(1,1) << "\t" << Rwr.at<double>(1,2) << endl;
+//	cout << Rwr.at<double>(2,0) << "\t" << Rwr.at<double>(2,1) << "\t" << Rwr.at<double>(2,2) << endl;
+//
+//	cout << endl << "RT Matrix:" << endl;
+//	cout << RT.at<double>(0,0) << "\t" << RT.at<double>(0,1) << "\t" << RT.at<double>(0,2) << "\t" << RT.at<double>(0,3) << endl;
+//	cout << RT.at<double>(1,0) << "\t" << RT.at<double>(1,1) << "\t" << RT.at<double>(1,2) << "\t" << RT.at<double>(1,3) << endl;
+//	cout << RT.at<double>(2,0) << "\t" << RT.at<double>(2,1) << "\t" << RT.at<double>(2,2) << "\t" << RT.at<double>(2,3) << endl;
+//	cout << RT.at<double>(3,0) << "\t\t" << RT.at<double>(3,1) << "\t\t" << RT.at<double>(3,2) << "\t\t" << RT.at<double>(3,3) << endl;
+//
+//	cout << endl << "P Matrix:" << endl;
+//	cout << P.at<double>(0,0) << "\t" << P.at<double>(0,1) << "\t" << P.at<double>(0,2) << "\t" << P.at<double>(0,3) << endl;
+//	cout << P.at<double>(1,0) << "\t" << P.at<double>(1,1) << "\t" << P.at<double>(1,2) << "\t" << P.at<double>(1,3) << endl;
+//	cout << P.at<double>(2,0) << "\t" << P.at<double>(2,1) << "\t" << P.at<double>(2,2) << "\t" << P.at<double>(2,3) << endl;
+//#endif
 }
 
 cv::Mat CameraParam::FindR(double yaw, double pitch, double roll)
@@ -184,10 +184,10 @@ cv::Mat CameraParam::GetFfromP(cv::Mat & P1, cv::Mat & P2)
 	Y3.copyTo(fDet(cv::Rect(0,2,4,2)));
 	F.at<double> (2,2) = cv::determinant(fDet);	// det([X3; Y3])
 
-	cout << endl << "F Matrix:" << endl;
+	/*cout << endl << "F Matrix:" << endl;
 	cout << F.at<double>(0,0) << "\t" << F.at<double>(0,1) << "\t" << F.at<double>(0,2) << endl;
 	cout << F.at<double>(1,0) << "\t" << F.at<double>(1,1) << "\t" << F.at<double>(1,2) << endl;
-	cout << F.at<double>(2,0) << "\t" << F.at<double>(2,1) << "\t" << F.at<double>(2,2) << endl;
+	cout << F.at<double>(2,0) << "\t" << F.at<double>(2,1) << "\t" << F.at<double>(2,2) << endl;*/
 
 	return F;
 }
