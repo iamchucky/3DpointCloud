@@ -35,7 +35,8 @@ using namespace std;
 #define WIDTH 640
 #define HEIGHT 480
 #define CHANNELS 1
-#define USE_F_GUIDED_SIFT false
+#define USE_F_GUIDED_SIFT true
+#define USE_H_GUIDED_SIFT true
 
 char camName[]="Global\\CamMappingObject";
 HANDLE hMapFile=NULL;
@@ -431,6 +432,7 @@ void RunRealtime()
 						//*****************GPU Guided SIFT MATCHING***************
 						//example: define a homography, and use default threshold 32 to search in a 64x64 window
 						//float h[3][3] = {{0.8f, 0, 0}, {0, 0.8f, 0}, {0, 0, 1.0f}};
+						
 						cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
 						float f[3][3] = {{F.at<double>(0,0), F.at<double>(0,1), F.at<double>(0,2)}, 
 										 {F.at<double>(1,0), F.at<double>(1,1), F.at<double>(1,2)},
@@ -438,6 +440,28 @@ void RunRealtime()
 						matcher->SetFeatureLocation(0, &keys1[0]); //SetFeatureLocaiton after SetDescriptors
 						matcher->SetFeatureLocation(1, &keys2[0]);
 						num_match = matcher->GetGuidedSiftMatch(num1, match_buf, NULL, f);
+						cv::Mat H;
+						if (USE_H_GUIDED_SIFT)
+						{
+							cv::Mat srcPt(num_match, 2, CV_64F);
+							cv::Mat dstPt(num_match, 2, CV_64F);
+							for(int i  = 0; i < num_match; ++i)
+							{
+								//How to get the feature matches: 
+								SiftGPU::SiftKeypoint & key1 = keys1[match_buf[i][0]];
+								SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
+								srcPt.at<double>(i,0) = key1.x;
+								srcPt.at<double>(i,1) = key1.y;
+								dstPt.at<double>(i,0) = key2.x;
+								dstPt.at<double>(i,1) = key2.y;
+							}
+							
+							H = cv::findHomography(srcPt, dstPt);
+							float h[3][3] = {{H.at<double>(0,0), H.at<double>(0,1), H.at<double>(0,2)}, 
+											 {H.at<double>(1,0), H.at<double>(1,1), H.at<double>(1,2)},
+											 {H.at<double>(2,0), H.at<double>(2,1), H.at<double>(2,2)}};
+							num_match = matcher->GetGuidedSiftMatch(num_match, match_buf, h, f);
+						}
 						std::cout << num_match << " guided sift matches were found;\n";
 						//if you can want to use a Fundamental matrix, check the function definition
 					}
