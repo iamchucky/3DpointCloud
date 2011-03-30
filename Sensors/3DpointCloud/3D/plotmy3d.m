@@ -62,7 +62,7 @@ for n = 1:size(threeD,1)
 %     drawcam(RT,0.1,'-g');
 %     drawbot(M,0.2,'-g');
 plot3(threeD(n,end-2), threeD(n,end-1), threeD(n,end),'*');
-pause(0.001);
+% pause(0.0001);
 end
 
 % pose.x = 2.72296555;

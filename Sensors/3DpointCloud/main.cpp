@@ -37,6 +37,7 @@ using namespace std;
 #define CHANNELS 1
 #define USE_F_GUIDED_SIFT true
 #define USE_H_GUIDED_SIFT true
+#define ANGLE_SECTION 24
 
 char camName[]="Global\\CamMappingObject";
 HANDLE hMapFile=NULL;
@@ -115,6 +116,21 @@ using namespace std;
 //	WSACleanup();
 //	return ret;
 //}
+
+struct siftmatch
+{
+	int goneOnce;
+	bool update;
+	int num;
+	vector<float> descriptors;
+	vector<SiftGPU::SiftKeypoint> keys;
+	cv::Mat prevP;
+	double posex;
+	double posey;
+	double poseyaw;
+};
+
+struct siftmatch siftm[ANGLE_SECTION];
 
 void ClearScreen(bool startFromBeginning)
 {
@@ -232,6 +248,7 @@ void InitCommon ()
     if(sift->CreateContextGL() != SiftGPU::SIFTGPU_FULL_SUPPORTED) cout << "SIFTGPU init failed\n";
 
 	output.open (outputFilename, ios::out);
+
 
 	frameNum=0;
 	running=true;		
@@ -357,6 +374,140 @@ void PlotEpiline(cv::Mat & F, std::vector<cv::Point2f> points)
 	}
 }
 
+
+
+void MatchSIFT(int id)
+{
+	if (siftm[id].num > 0 && siftm[id].goneOnce)
+	{
+		//Verify current OpenGL Context and initialize the Matcher;
+		//If you don't have an OpenGL Context, call matcher->CreateContextGL instead;
+		matcher->VerifyContextGL(); //must call once
+
+		//Set descriptors to match, the first argument must be either 0 or 1
+		//if you want to use more than 4096 or less than 4096
+		//call matcher->SetMaxSift() to change the limit before calling setdescriptor
+		matcher->SetDescriptors(0, siftm[id].num, &siftm[id].descriptors[0]); //image 1
+		matcher->SetDescriptors(1, num2, &descriptors2[0]); //image 2
+
+		//match and get result.    
+		int (*match_buf)[2] = new int[siftm[id].num][2];
+		int num_match = 0;
+		//use the default thresholds. Check the declaration in SiftGPU.h
+		if (!USE_F_GUIDED_SIFT)
+		{
+			num_match = matcher->GetSiftMatch(siftm[id].num, match_buf);
+			std::cout << num_match << " sift matches were found;\n";
+		}
+		else
+		{
+			//*****************GPU Guided SIFT MATCHING***************
+			//example: define a homography, and use default threshold 32 to search in a 64x64 window
+			//float h[3][3] = {{0.8f, 0, 0}, {0, 0.8f, 0}, {0, 0, 1.0f}};
+						
+			cv::Mat F = cameraParam->GetFfromP(siftm[id].prevP,nextP);
+			float f[3][3] = {{F.at<double>(0,0), F.at<double>(0,1), F.at<double>(0,2)}, 
+								{F.at<double>(1,0), F.at<double>(1,1), F.at<double>(1,2)},
+								{F.at<double>(2,0), F.at<double>(2,1), F.at<double>(2,2)}};
+			matcher->SetFeatureLocation(0, &siftm[id].keys[0]); //SetFeatureLocaiton after SetDescriptors
+			matcher->SetFeatureLocation(1, &keys2[0]);
+			num_match = matcher->GetGuidedSiftMatch(siftm[id].num, match_buf, NULL, f);
+			cv::Mat H;
+			if (USE_H_GUIDED_SIFT)
+			{
+				cv::Mat srcPt(num_match, 2, CV_64F);
+				cv::Mat dstPt(num_match, 2, CV_64F);
+				for(int i  = 0; i < num_match; ++i)
+				{
+					//How to get the feature matches: 
+					SiftGPU::SiftKeypoint & key1 = siftm[id].keys[match_buf[i][0]];
+					SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
+					srcPt.at<double>(i,0) = key1.x;
+					srcPt.at<double>(i,1) = key1.y;
+					dstPt.at<double>(i,0) = key2.x;
+					dstPt.at<double>(i,1) = key2.y;
+				}
+							
+				H = cv::findHomography(srcPt, dstPt);
+				float h[3][3] = {{H.at<double>(0,0), H.at<double>(0,1), H.at<double>(0,2)}, 
+									{H.at<double>(1,0), H.at<double>(1,1), H.at<double>(1,2)},
+									{H.at<double>(2,0), H.at<double>(2,1), H.at<double>(2,2)}};
+				num_match = matcher->GetGuidedSiftMatch(num_match, match_buf, h, f);
+			}
+			std::cout << num_match << " guided sift matches were found;\n";
+			//if you can want to use a Fundamental matrix, check the function definition
+		}
+    
+		//enumerate all the feature matches
+		for(int i  = 0; i < num_match; ++i)
+		{
+			//How to get the feature matches: 
+			SiftGPU::SiftKeypoint & key1 = siftm[id].keys[match_buf[i][0]];
+			SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
+			//key1 in the first image matches with key2 in the second image
+
+			if (!siftm[id].prevP.empty())
+			{
+				//cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
+				/*cv::Mat p = (cv::Mat_<double>(3,1) << key1.x, key1.y, 1);
+				cv::Mat qT = (cv::Mat_<double>(1,3) << key2.x, key2.y, 1);
+				cv::Mat result = qT*F*p;
+				double resultd = abs(result.at<double> (0,0));
+				if (resultd > 100)
+				{
+					continue;
+				}*/
+
+				cvRectangle( resize, cvPoint(key2.x-2,key2.y-2), cvPoint(key2.x+2,key2.y+2),cvScalar(0,0,255) );
+
+				int px = key1.x;
+				int py = key1.y;
+				int nx = key2.x;
+				int ny = key2.y;
+				cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
+
+				// Triangulation using P and feature correspondence
+				// prevP
+				// cameraParam->P
+				// prevPts
+				// nextPts
+				cv::Mat prevP = siftm[id].prevP;
+				cv::Mat A = (cv::Mat_<double>(4,4) <<	
+					prevP.at<double>(2,0)*px-prevP.at<double>(0,0), prevP.at<double>(2,1)*px-prevP.at<double>(0,1), prevP.at<double>(2,2)*px-prevP.at<double>(0,2), prevP.at<double>(2,3)*px-prevP.at<double>(0,3),
+					prevP.at<double>(2,0)*py-prevP.at<double>(1,0), prevP.at<double>(2,1)*py-prevP.at<double>(1,1), prevP.at<double>(2,2)*py-prevP.at<double>(1,2), prevP.at<double>(2,3)*py-prevP.at<double>(1,3),
+					nextP.at<double>(2,0)*nx-nextP.at<double>(0,0), nextP.at<double>(2,1)*nx-nextP.at<double>(0,1), nextP.at<double>(2,2)*nx-nextP.at<double>(0,2), nextP.at<double>(2,3)*nx-nextP.at<double>(0,3),
+					nextP.at<double>(2,0)*ny-nextP.at<double>(1,0), nextP.at<double>(2,1)*ny-nextP.at<double>(1,1), nextP.at<double>(2,2)*ny-nextP.at<double>(1,2), nextP.at<double>(2,3)*ny-nextP.at<double>(1,3)	);
+				//cv::Mat B = cv::Mat::zeros(4,1,CV_64F);
+				//cv::solve(A,B,threeDcoord,cv::DECOMP_SVD);
+				cv::SVD::solveZ(A, threeDcoord);
+
+				double ox = threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0);
+				double oy = threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0);
+				double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
+				if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
+				{
+					output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
+					output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t";
+					output << prevP.at<double>(0,0) << "\t" << prevP.at<double>(0,1) << "\t" << prevP.at<double>(0,2) << "\t" << prevP.at<double>(0,3) << "\t";
+					output << prevP.at<double>(1,0) << "\t" << prevP.at<double>(1,1) << "\t" << prevP.at<double>(1,2) << "\t" << prevP.at<double>(1,3) << "\t";
+					output << prevP.at<double>(2,0) << "\t" << prevP.at<double>(2,1) << "\t" << prevP.at<double>(2,2) << "\t" << prevP.at<double>(2,3) << "\t";
+
+					output << nextP.at<double>(0,0) << "\t" << nextP.at<double>(0,1) << "\t" << nextP.at<double>(0,2) << "\t" << nextP.at<double>(0,3) << "\t";
+					output << nextP.at<double>(1,0) << "\t" << nextP.at<double>(1,1) << "\t" << nextP.at<double>(1,2) << "\t" << nextP.at<double>(1,3) << "\t";
+					output << nextP.at<double>(2,0) << "\t" << nextP.at<double>(2,1) << "\t" << nextP.at<double>(2,2) << "\t" << nextP.at<double>(2,3) << "\t";
+					output << A.at<double>(0,0) << "\t" << A.at<double>(0,1) << "\t" << A.at<double>(0,2) << "\t" << A.at<double>(0,3) << "\t";
+					output << A.at<double>(1,0) << "\t" << A.at<double>(1,1) << "\t" << A.at<double>(1,2) << "\t" << A.at<double>(1,3) << "\t";
+					output << A.at<double>(2,0) << "\t" << A.at<double>(2,1) << "\t" << A.at<double>(2,2) << "\t" << A.at<double>(2,3) << "\t";
+					output << A.at<double>(3,0) << "\t" << A.at<double>(3,1) << "\t" << A.at<double>(3,2) << "\t" << A.at<double>(3,3) << "\t";
+					output << ox << "\t" << oy << "\t" << oz << endl;
+				}
+			}
+		}
+			
+		delete[] match_buf;
+	}
+}
+
 void RunRealtime()
 {	 
 	// Make we can get camera input
@@ -392,6 +543,10 @@ void RunRealtime()
 			cout << "timestamp diff: " << dt << endl;
 			//gotDisparity = false;
 			nextP = cameraParam->P.clone();
+			double posex = cameraPose->pose.x;
+			double posey = cameraPose->pose.y;
+			double poseyaw = (cameraPose->pose.yaw < 0)? cameraPose->pose.yaw+2.0*3.141592653589793:cameraPose->pose.yaw;
+			int section = floor(poseyaw/(3.141592653589793*2.0/ANGLE_SECTION));
 			// Start of SIFTGPU stuff
 			if (1)
 			{
@@ -406,141 +561,33 @@ void RunRealtime()
 					//if you dont need keys or descriptors, just put NULLs here
 					sift->GetFeatureVector(&keys2[0], &descriptors2[0]);
 				}
-				if (num1 > 0)
+
+				double d = pow(posex-siftm[section].posex,2.0)+pow(posey-siftm[section].posey,2.0);
+				double tempyaw1 = ((siftm[section].poseyaw > 3.141592653589793)?siftm[section].poseyaw - 3.141592653589793*2:siftm[section].poseyaw)+3.141592653589793;
+				double tempyaw2 = ((poseyaw > 3.141592653589793)?poseyaw - 3.141592653589793*2:poseyaw)+3.141592653589793;
+				double dyaw = tempyaw1-tempyaw2;
+				if (d > 0.5 && abs(dyaw) < 0.05)
 				{
-					//Verify current OpenGL Context and initialize the Matcher;
-					//If you don't have an OpenGL Context, call matcher->CreateContextGL instead;
-					matcher->VerifyContextGL(); //must call once
-
-					//Set descriptors to match, the first argument must be either 0 or 1
-					//if you want to use more than 4096 or less than 4096
-					//call matcher->SetMaxSift() to change the limit before calling setdescriptor
-					matcher->SetDescriptors(0, num1, &descriptors1[0]); //image 1
-					matcher->SetDescriptors(1, num2, &descriptors2[0]); //image 2
-
-					//match and get result.    
-					int (*match_buf)[2] = new int[num1][2];
-					int num_match = 0;
-					//use the default thresholds. Check the declaration in SiftGPU.h
-					if (!USE_F_GUIDED_SIFT)
-					{
-						num_match = matcher->GetSiftMatch(num1, match_buf);
-						std::cout << num_match << " sift matches were found;\n";
-					}
-					else
-					{
-						//*****************GPU Guided SIFT MATCHING***************
-						//example: define a homography, and use default threshold 32 to search in a 64x64 window
-						//float h[3][3] = {{0.8f, 0, 0}, {0, 0.8f, 0}, {0, 0, 1.0f}};
-						
-						cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
-						float f[3][3] = {{F.at<double>(0,0), F.at<double>(0,1), F.at<double>(0,2)}, 
-										 {F.at<double>(1,0), F.at<double>(1,1), F.at<double>(1,2)},
-										 {F.at<double>(2,0), F.at<double>(2,1), F.at<double>(2,2)}};
-						matcher->SetFeatureLocation(0, &keys1[0]); //SetFeatureLocaiton after SetDescriptors
-						matcher->SetFeatureLocation(1, &keys2[0]);
-						num_match = matcher->GetGuidedSiftMatch(num1, match_buf, NULL, f);
-						cv::Mat H;
-						if (USE_H_GUIDED_SIFT)
-						{
-							cv::Mat srcPt(num_match, 2, CV_64F);
-							cv::Mat dstPt(num_match, 2, CV_64F);
-							for(int i  = 0; i < num_match; ++i)
-							{
-								//How to get the feature matches: 
-								SiftGPU::SiftKeypoint & key1 = keys1[match_buf[i][0]];
-								SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
-								srcPt.at<double>(i,0) = key1.x;
-								srcPt.at<double>(i,1) = key1.y;
-								dstPt.at<double>(i,0) = key2.x;
-								dstPt.at<double>(i,1) = key2.y;
-							}
-							
-							H = cv::findHomography(srcPt, dstPt);
-							float h[3][3] = {{H.at<double>(0,0), H.at<double>(0,1), H.at<double>(0,2)}, 
-											 {H.at<double>(1,0), H.at<double>(1,1), H.at<double>(1,2)},
-											 {H.at<double>(2,0), H.at<double>(2,1), H.at<double>(2,2)}};
-							num_match = matcher->GetGuidedSiftMatch(num_match, match_buf, h, f);
-						}
-						std::cout << num_match << " guided sift matches were found;\n";
-						//if you can want to use a Fundamental matrix, check the function definition
-					}
-    
-					//enumerate all the feature matches
-					for(int i  = 0; i < num_match; ++i)
-					{
-						//How to get the feature matches: 
-						SiftGPU::SiftKeypoint & key1 = keys1[match_buf[i][0]];
-						SiftGPU::SiftKeypoint & key2 = keys2[match_buf[i][1]];
-						//key1 in the first image matches with key2 in the second image
-
-						if (!prevP.empty())
-						{
-							//cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
-							/*cv::Mat p = (cv::Mat_<double>(3,1) << key1.x, key1.y, 1);
-							cv::Mat qT = (cv::Mat_<double>(1,3) << key2.x, key2.y, 1);
-							cv::Mat result = qT*F*p;
-							double resultd = abs(result.at<double> (0,0));
-							if (resultd > 100)
-							{
-								continue;
-							}*/
-
-							cvRectangle( resize, cvPoint(key2.x-2,key2.y-2), cvPoint(key2.x+2,key2.y+2),cvScalar(0,0,255) );
-
-							int px = key1.x;
-							int py = key1.y;
-							int nx = key2.x;
-							int ny = key2.y;
-							cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
-
-							// Triangulation using P and feature correspondence
-							// prevP
-							// cameraParam->P
-							// prevPts
-							// nextPts
-							cv::Mat A = (cv::Mat_<double>(4,4) <<	
-								prevP.at<double>(2,0)*px-prevP.at<double>(0,0), prevP.at<double>(2,1)*px-prevP.at<double>(0,1), prevP.at<double>(2,2)*px-prevP.at<double>(0,2), prevP.at<double>(2,3)*px-prevP.at<double>(0,3),
-								prevP.at<double>(2,0)*py-prevP.at<double>(1,0), prevP.at<double>(2,1)*py-prevP.at<double>(1,1), prevP.at<double>(2,2)*py-prevP.at<double>(1,2), prevP.at<double>(2,3)*py-prevP.at<double>(1,3),
-								nextP.at<double>(2,0)*nx-nextP.at<double>(0,0), nextP.at<double>(2,1)*nx-nextP.at<double>(0,1), nextP.at<double>(2,2)*nx-nextP.at<double>(0,2), nextP.at<double>(2,3)*nx-nextP.at<double>(0,3),
-								nextP.at<double>(2,0)*ny-nextP.at<double>(1,0), nextP.at<double>(2,1)*ny-nextP.at<double>(1,1), nextP.at<double>(2,2)*ny-nextP.at<double>(1,2), nextP.at<double>(2,3)*ny-nextP.at<double>(1,3)	);
-							//cv::Mat B = cv::Mat::zeros(4,1,CV_64F);
-							//cv::solve(A,B,threeDcoord,cv::DECOMP_SVD);
-							cv::SVD::solveZ(A, threeDcoord);
-
-							double ox = threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0);
-							double oy = threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0);
-							double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
-							if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
-							{
-								output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
-								output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t";
-								output << prevP.at<double>(0,0) << "\t" << prevP.at<double>(0,1) << "\t" << prevP.at<double>(0,2) << "\t" << prevP.at<double>(0,3) << "\t";
-								output << prevP.at<double>(1,0) << "\t" << prevP.at<double>(1,1) << "\t" << prevP.at<double>(1,2) << "\t" << prevP.at<double>(1,3) << "\t";
-								output << prevP.at<double>(2,0) << "\t" << prevP.at<double>(2,1) << "\t" << prevP.at<double>(2,2) << "\t" << prevP.at<double>(2,3) << "\t";
-
-								output << nextP.at<double>(0,0) << "\t" << nextP.at<double>(0,1) << "\t" << nextP.at<double>(0,2) << "\t" << nextP.at<double>(0,3) << "\t";
-								output << nextP.at<double>(1,0) << "\t" << nextP.at<double>(1,1) << "\t" << nextP.at<double>(1,2) << "\t" << nextP.at<double>(1,3) << "\t";
-								output << nextP.at<double>(2,0) << "\t" << nextP.at<double>(2,1) << "\t" << nextP.at<double>(2,2) << "\t" << nextP.at<double>(2,3) << "\t";
-								output << A.at<double>(0,0) << "\t" << A.at<double>(0,1) << "\t" << A.at<double>(0,2) << "\t" << A.at<double>(0,3) << "\t";
-								output << A.at<double>(1,0) << "\t" << A.at<double>(1,1) << "\t" << A.at<double>(1,2) << "\t" << A.at<double>(1,3) << "\t";
-								output << A.at<double>(2,0) << "\t" << A.at<double>(2,1) << "\t" << A.at<double>(2,2) << "\t" << A.at<double>(2,3) << "\t";
-								output << A.at<double>(3,0) << "\t" << A.at<double>(3,1) << "\t" << A.at<double>(3,2) << "\t" << A.at<double>(3,3) << "\t";
-								output << ox << "\t" << oy << "\t" << oz << endl;
-							}
-						}
-					}
-			
-					delete[] match_buf;
+					MatchSIFT(section);
+					siftm[section].update = true;
 				}
 				// End of SIFTGPU stuff
 
 			
 				if (num2 > 0)
 				{
-					num1 = sift->GetFeatureNum();
-					keys1.resize(num1);    descriptors1.resize(128*num1);
-					sift->GetFeatureVector(&keys1[0], &descriptors1[0]);
+					if (!siftm[section].goneOnce || siftm[section].update)
+					{
+						siftm[section].posex = posex;
+						siftm[section].posey = posey;
+						siftm[section].poseyaw = poseyaw;
+						siftm[section].num = sift->GetFeatureNum();
+						siftm[section].keys.resize(siftm[section].num);    siftm[section].descriptors.resize(128*siftm[section].num);
+						sift->GetFeatureVector(&siftm[section].keys[0], &siftm[section].descriptors[0]);
+						siftm[section].prevP = nextP.clone();
+						siftm[section].update = false;
+						siftm[section].goneOnce = true;
+					}
 				}
 			}
 

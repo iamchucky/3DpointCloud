@@ -67,7 +67,7 @@ double CameraParam::Get_alpha_c(void)
 
 void CameraParam::Update_R_T(CameraPose::Pose & pose)
 {
-	double camera_z = 0.4;
+	double camera_z = 0.5;
 	cv::Mat Trc = (cv::Mat_<double>(3,1) << 0.0, 0.0, camera_z);
 	Twr = (cv::Mat_<double>(3,1) << pose.x, pose.y, pose.z);
 	T_x = (cv::Mat_<double>(3,3) << 0.f, -pose.z, pose.y,
