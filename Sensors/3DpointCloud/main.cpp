@@ -37,7 +37,11 @@ using namespace std;
 #define CHANNELS 1
 #define USE_F_GUIDED_SIFT true
 #define USE_H_GUIDED_SIFT true
-#define ANGLE_SECTION 1
+#define USE_ANGLE_SECTION false
+#define ANGLE_SECTION 24
+#define DRAWBOX false
+#define PLOT_ORIGIN	false
+#define SAVE_CAPTURE true
 
 char camName[]="Global\\CamMappingObject";
 HANDLE hMapFile=NULL;
@@ -457,50 +461,56 @@ void MatchSIFT(int id)
 				{
 					continue;
 				}*/
-
-				cvRectangle( resize, cvPoint(key2.x-2,key2.y-2), cvPoint(key2.x+2,key2.y+2),cvScalar(0,0,255) );
-
+				
 				int px = key1.x;
 				int py = key1.y;
 				int nx = key2.x;
 				int ny = key2.y;
-				cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
+
+				if (DRAWBOX)
+				{
+					cvRectangle( resize, cvPoint(key2.x-2,key2.y-2), cvPoint(key2.x+2,key2.y+2),cvScalar(0,255,0) );
+					cvLine( resize, cvPoint(px,py), cvPoint(nx,ny), cvScalar(0,0,0));
+				}
 
 				// Triangulation using P and feature correspondence
 				// prevP
 				// cameraParam->P
 				// prevPts
 				// nextPts
-				//cv::Mat prevP = siftm[id].prevP;
-				//cv::Mat A = (cv::Mat_<double>(4,4) <<	
-				//	prevP.at<double>(2,0)*px-prevP.at<double>(0,0), prevP.at<double>(2,1)*px-prevP.at<double>(0,1), prevP.at<double>(2,2)*px-prevP.at<double>(0,2), prevP.at<double>(2,3)*px-prevP.at<double>(0,3),
-				//	prevP.at<double>(2,0)*py-prevP.at<double>(1,0), prevP.at<double>(2,1)*py-prevP.at<double>(1,1), prevP.at<double>(2,2)*py-prevP.at<double>(1,2), prevP.at<double>(2,3)*py-prevP.at<double>(1,3),
-				//	nextP.at<double>(2,0)*nx-nextP.at<double>(0,0), nextP.at<double>(2,1)*nx-nextP.at<double>(0,1), nextP.at<double>(2,2)*nx-nextP.at<double>(0,2), nextP.at<double>(2,3)*nx-nextP.at<double>(0,3),
-				//	nextP.at<double>(2,0)*ny-nextP.at<double>(1,0), nextP.at<double>(2,1)*ny-nextP.at<double>(1,1), nextP.at<double>(2,2)*ny-nextP.at<double>(1,2), nextP.at<double>(2,3)*ny-nextP.at<double>(1,3)	);
-				////cv::Mat B = cv::Mat::zeros(4,1,CV_64F);
-				////cv::solve(A,B,threeDcoord,cv::DECOMP_SVD);
-				//cv::SVD::solveZ(A, threeDcoord);
+				cv::Mat prevP = siftm[id].prevP;
+				cv::Mat A = (cv::Mat_<double>(4,4) <<	
+					prevP.at<double>(2,0)*px-prevP.at<double>(0,0), prevP.at<double>(2,1)*px-prevP.at<double>(0,1), prevP.at<double>(2,2)*px-prevP.at<double>(0,2), prevP.at<double>(2,3)*px-prevP.at<double>(0,3),
+					prevP.at<double>(2,0)*py-prevP.at<double>(1,0), prevP.at<double>(2,1)*py-prevP.at<double>(1,1), prevP.at<double>(2,2)*py-prevP.at<double>(1,2), prevP.at<double>(2,3)*py-prevP.at<double>(1,3),
+					nextP.at<double>(2,0)*nx-nextP.at<double>(0,0), nextP.at<double>(2,1)*nx-nextP.at<double>(0,1), nextP.at<double>(2,2)*nx-nextP.at<double>(0,2), nextP.at<double>(2,3)*nx-nextP.at<double>(0,3),
+					nextP.at<double>(2,0)*ny-nextP.at<double>(1,0), nextP.at<double>(2,1)*ny-nextP.at<double>(1,1), nextP.at<double>(2,2)*ny-nextP.at<double>(1,2), nextP.at<double>(2,3)*ny-nextP.at<double>(1,3)	);
+				//cv::Mat B = cv::Mat::zeros(4,1,CV_64F);
+				//cv::solve(A,B,threeDcoord,cv::DECOMP_SVD);
+				cv::SVD::solveZ(A, threeDcoord);
 
-				//double ox = threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0);
-				//double oy = threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0);
-				//double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
-				//if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
-				//{
-				//	output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
-				//	output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t";
-				//	output << prevP.at<double>(0,0) << "\t" << prevP.at<double>(0,1) << "\t" << prevP.at<double>(0,2) << "\t" << prevP.at<double>(0,3) << "\t";
-				//	output << prevP.at<double>(1,0) << "\t" << prevP.at<double>(1,1) << "\t" << prevP.at<double>(1,2) << "\t" << prevP.at<double>(1,3) << "\t";
-				//	output << prevP.at<double>(2,0) << "\t" << prevP.at<double>(2,1) << "\t" << prevP.at<double>(2,2) << "\t" << prevP.at<double>(2,3) << "\t";
+				double ox = threeDcoord.at<double>(0,0)/threeDcoord.at<double>(3,0);
+				double oy = threeDcoord.at<double>(1,0)/threeDcoord.at<double>(3,0);
+				double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
+				if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
+				{
+					output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
+					output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t";
+					output << prevP.at<double>(0,0) << "\t" << prevP.at<double>(0,1) << "\t" << prevP.at<double>(0,2) << "\t" << prevP.at<double>(0,3) << "\t";
+					output << prevP.at<double>(1,0) << "\t" << prevP.at<double>(1,1) << "\t" << prevP.at<double>(1,2) << "\t" << prevP.at<double>(1,3) << "\t";
+					output << prevP.at<double>(2,0) << "\t" << prevP.at<double>(2,1) << "\t" << prevP.at<double>(2,2) << "\t" << prevP.at<double>(2,3) << "\t";
 
-				//	output << nextP.at<double>(0,0) << "\t" << nextP.at<double>(0,1) << "\t" << nextP.at<double>(0,2) << "\t" << nextP.at<double>(0,3) << "\t";
-				//	output << nextP.at<double>(1,0) << "\t" << nextP.at<double>(1,1) << "\t" << nextP.at<double>(1,2) << "\t" << nextP.at<double>(1,3) << "\t";
-				//	output << nextP.at<double>(2,0) << "\t" << nextP.at<double>(2,1) << "\t" << nextP.at<double>(2,2) << "\t" << nextP.at<double>(2,3) << "\t";
-				//	output << A.at<double>(0,0) << "\t" << A.at<double>(0,1) << "\t" << A.at<double>(0,2) << "\t" << A.at<double>(0,3) << "\t";
-				//	output << A.at<double>(1,0) << "\t" << A.at<double>(1,1) << "\t" << A.at<double>(1,2) << "\t" << A.at<double>(1,3) << "\t";
-				//	output << A.at<double>(2,0) << "\t" << A.at<double>(2,1) << "\t" << A.at<double>(2,2) << "\t" << A.at<double>(2,3) << "\t";
-				//	output << A.at<double>(3,0) << "\t" << A.at<double>(3,1) << "\t" << A.at<double>(3,2) << "\t" << A.at<double>(3,3) << "\t";
-				//	output << ox << "\t" << oy << "\t" << oz << endl;
-				//}
+					output << nextP.at<double>(0,0) << "\t" << nextP.at<double>(0,1) << "\t" << nextP.at<double>(0,2) << "\t" << nextP.at<double>(0,3) << "\t";
+					output << nextP.at<double>(1,0) << "\t" << nextP.at<double>(1,1) << "\t" << nextP.at<double>(1,2) << "\t" << nextP.at<double>(1,3) << "\t";
+					output << nextP.at<double>(2,0) << "\t" << nextP.at<double>(2,1) << "\t" << nextP.at<double>(2,2) << "\t" << nextP.at<double>(2,3) << "\t";
+					output << A.at<double>(0,0) << "\t" << A.at<double>(0,1) << "\t" << A.at<double>(0,2) << "\t" << A.at<double>(0,3) << "\t";
+					output << A.at<double>(1,0) << "\t" << A.at<double>(1,1) << "\t" << A.at<double>(1,2) << "\t" << A.at<double>(1,3) << "\t";
+					output << A.at<double>(2,0) << "\t" << A.at<double>(2,1) << "\t" << A.at<double>(2,2) << "\t" << A.at<double>(2,3) << "\t";
+					output << A.at<double>(3,0) << "\t" << A.at<double>(3,1) << "\t" << A.at<double>(3,2) << "\t" << A.at<double>(3,3) << "\t";
+					output << ox << "\t" << oy << "\t" << oz << "\t";
+					output << (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+0) << "\t";
+					output << (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+1) << "\t";
+					output << (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+2) << endl;
+				}
 			}
 		}
 			
@@ -546,32 +556,57 @@ void RunRealtime()
 			double posex = cameraPose->pose.x;
 			double posey = cameraPose->pose.y;
 			double poseyaw = (cameraPose->pose.yaw < 0)? cameraPose->pose.yaw+2.0*3.141592653589793:cameraPose->pose.yaw;
-			//int section = floor(poseyaw/(3.141592653589793*2.0/ANGLE_SECTION));
 			int section = 0;
+			if (USE_ANGLE_SECTION)
+			{
+				section = floor(poseyaw/(3.141592653589793*2.0/ANGLE_SECTION));
+			}
 			// Start of SIFTGPU stuff
+			
+			if (sift->RunSIFT(resize->width, resize->height, resize->imageData, 0x80E0, 0x1401))
+			{
+				//get feature count
+				num2 = sift->GetFeatureNum();
+				//allocate memory
+				keys2.resize(num2);    descriptors2.resize(128*num2);
+				//reading back feature vectors is faster than writing files
+				//if you dont need keys or descriptors, just put NULLs here
+				sift->GetFeatureVector(&keys2[0], &descriptors2[0]);
+				if (DRAWBOX)
+				{
+					for(int i  = 0; i < num2; ++i)
+					{
+						SiftGPU::SiftKeypoint & key2 = keys2[i];
+					
+						cvRectangle( resize, cvPoint(key2.x-key2.s,key2.y-key2.s), cvPoint(key2.x+key2.s,key2.y+key2.s),cvScalar(0,0,255) );
+					}
+				}
+			}
 			if (gotDisparity)
 			{
-				gotDisparity = false;
-				if (sift->RunSIFT(resize->width, resize->height, resize->imageData, 0x80E0, 0x1401))
+				if (SAVE_CAPTURE)
 				{
-					//get feature count
-					num2 = sift->GetFeatureNum();
-					//allocate memory
-					keys2.resize(num2);    descriptors2.resize(128*num2);
-					//reading back feature vectors is faster than writing files
-					//if you dont need keys or descriptors, just put NULLs here
-					sift->GetFeatureVector(&keys2[0], &descriptors2[0]);
+					sprintf(filename, "3D\\img_%05d.jpg", frameNum);
+					cvSaveImage(filename, resize);
 				}
-
-				/*double d = pow(posex-siftm[section].posex,2.0)+pow(posey-siftm[section].posey,2.0);
-				double tempyaw1 = ((siftm[section].poseyaw > 3.141592653589793)?siftm[section].poseyaw - 3.141592653589793*2:siftm[section].poseyaw)+3.141592653589793;
-				double tempyaw2 = ((poseyaw > 3.141592653589793)?poseyaw - 3.141592653589793*2:poseyaw)+3.141592653589793;
-				double dyaw = tempyaw1-tempyaw2;
-				if (d > 0.5 && abs(dyaw) < 0.05)
-				{*/
+				gotDisparity = false;
+				if (USE_ANGLE_SECTION)
+				{
+					double d = pow(posex-siftm[section].posex,2.0)+pow(posey-siftm[section].posey,2.0);
+					double tempyaw1 = ((siftm[section].poseyaw > 3.141592653589793)?siftm[section].poseyaw - 3.141592653589793*2:siftm[section].poseyaw)+3.141592653589793;
+					double tempyaw2 = ((poseyaw > 3.141592653589793)?poseyaw - 3.141592653589793*2:poseyaw)+3.141592653589793;
+					double dyaw = tempyaw1-tempyaw2;
+					if (d > 0.5 && abs(dyaw) < 0.05)
+					{
+						MatchSIFT(section);
+						siftm[section].update = true;
+					}
+				}
+				else
+				{
 					MatchSIFT(section);
 					siftm[section].update = true;
-				//}
+				}
 				// End of SIFTGPU stuff
 
 			
@@ -592,7 +627,10 @@ void RunRealtime()
 				}
 			}
 
-			PlotOrigin(nextP);
+			if (PLOT_ORIGIN)
+			{
+				PlotOrigin(nextP);
+			}
 			
 			prevP = nextP.clone();
 			//cvCopy(resizeBW,prevImg);
