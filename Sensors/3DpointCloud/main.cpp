@@ -85,42 +85,6 @@ CONSOLE_SCREEN_BUFFER_INFO startConsoleInfo;
 
 using namespace std;
 
-//int GetRobotID()
-//{
-//	WSAData wsaData;
-//	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
-//		return 255;
-//	}
-//
-//	char ac[80];
-//	char ac2[80];
-//	if (gethostname(ac, sizeof(ac)) == SOCKET_ERROR) 
-//	{
-//		cerr << "Error " << WSAGetLastError() <<	" when getting local host name." << endl;
-//		return 0;
-//	}
-//	cout << "Host name is " << ac << "." << endl;
-//	int ret=0;
-//	sscanf(ac,"spider%s",ac2); 
-//	//	sscanf(ac,"spider%d",ret); 
-//	ret = atoi(ac2);
-//	struct hostent *phe = gethostbyname(ac);
-//	if (phe == 0) 
-//	{
-//		cerr << "Yow! Bad host lookup." << endl; return 0;
-//	}
-//
-//	for (int i = 0; phe->h_addr_list[i] != 0; ++i) 
-//	{
-//		struct in_addr addr;
-//		memcpy(&addr, phe->h_addr_list[i], sizeof(struct in_addr));
-//		cout << "Address " << i << ": " << inet_ntoa(addr) << endl;
-//	}
-//
-//	WSACleanup();
-//	return ret;
-//}
-
 struct siftmatch
 {
 	int goneOnce;
@@ -195,30 +159,7 @@ void PoseCallback(RobotPoseMsg pmsg, CameraPose* cameraPose, void* data)
 //#ifdef DEBUG_LEVEL1
 //	ClearScreen(false);
 //#endif
-	/*double t = cameraPose->pose.timestamp;
-	t = t*1000.0;
-	int roundt = (int)t%100;
-	if (roundt < 20)*/
-		cameraParam->Update_R_T(cameraPose->pose);
-	/*if (!goneOnce)
-	{
-		prevPose.x = cameraPose->pose.x;
-		prevPose.y = cameraPose->pose.y;
-		prevPose.yaw = (cameraPose->pose.yaw < 0)? cameraPose->pose.yaw+2.0*3.1415:cameraPose->pose.yaw;
-		goneOnce = true;
-	}
-	else
-	{
-		double d = pow(cameraPose->pose.x-prevPose.x,2.0)+pow(cameraPose->pose.y-prevPose.y,2.0);
-		double dyaw = prevPose.yaw-((cameraPose->pose.yaw < 0)? (cameraPose->pose.yaw+2.0*3.1415):cameraPose->pose.yaw);
-		if (d > 0.25 && abs(dyaw) < 0.1)
-		{
-			prevPose.x = cameraPose->pose.x;
-			prevPose.y = cameraPose->pose.y;
-			prevPose.yaw = cameraPose->pose.yaw;
-			gotDisparity = true;
-		}
-	}*/
+	cameraParam->Update_R_T(cameraPose->pose);
 }
 
 void InitCommon ()
@@ -237,8 +178,6 @@ void InitCommon ()
 	prevImg = cvCreateImage(cvGetSize(resize),IPL_DEPTH_8U,1);
 
 	threeDcoord = cv::Mat(4,1,CV_64F);
-	/*prevP = cv::Mat(3,4,CV_64F);
-	nextP = cv::Mat(3,4,CV_64F);*/
 
 	prevPose.x = 0.0;
 	prevPose.y = 0.0;
@@ -378,7 +317,24 @@ void PlotEpiline(cv::Mat & F, std::vector<cv::Point2f> points)
 	}
 }
 
+void Output3D(double x, double y, double z, int b, int g, int r)
+{
+	/*output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
+	output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t";
+	output << prevP.at<double>(0,0) << "\t" << prevP.at<double>(0,1) << "\t" << prevP.at<double>(0,2) << "\t" << prevP.at<double>(0,3) << "\t";
+	output << prevP.at<double>(1,0) << "\t" << prevP.at<double>(1,1) << "\t" << prevP.at<double>(1,2) << "\t" << prevP.at<double>(1,3) << "\t";
+	output << prevP.at<double>(2,0) << "\t" << prevP.at<double>(2,1) << "\t" << prevP.at<double>(2,2) << "\t" << prevP.at<double>(2,3) << "\t";
 
+	output << nextP.at<double>(0,0) << "\t" << nextP.at<double>(0,1) << "\t" << nextP.at<double>(0,2) << "\t" << nextP.at<double>(0,3) << "\t";
+	output << nextP.at<double>(1,0) << "\t" << nextP.at<double>(1,1) << "\t" << nextP.at<double>(1,2) << "\t" << nextP.at<double>(1,3) << "\t";
+	output << nextP.at<double>(2,0) << "\t" << nextP.at<double>(2,1) << "\t" << nextP.at<double>(2,2) << "\t" << nextP.at<double>(2,3) << "\t";
+	output << A.at<double>(0,0) << "\t" << A.at<double>(0,1) << "\t" << A.at<double>(0,2) << "\t" << A.at<double>(0,3) << "\t";
+	output << A.at<double>(1,0) << "\t" << A.at<double>(1,1) << "\t" << A.at<double>(1,2) << "\t" << A.at<double>(1,3) << "\t";
+	output << A.at<double>(2,0) << "\t" << A.at<double>(2,1) << "\t" << A.at<double>(2,2) << "\t" << A.at<double>(2,3) << "\t";
+	output << A.at<double>(3,0) << "\t" << A.at<double>(3,1) << "\t" << A.at<double>(3,2) << "\t" << A.at<double>(3,3) << "\t";*/
+	output << x << "\t" << y << "\t" << z << "\t";
+	output << b << "\t" << g << "\t" << r << endl;
+}
 
 void MatchSIFT(int id)
 {
@@ -451,17 +407,7 @@ void MatchSIFT(int id)
 			//key1 in the first image matches with key2 in the second image
 
 			if (!siftm[id].prevP.empty())
-			{
-				//cv::Mat F = cameraParam->GetFfromP(prevP,nextP);
-				/*cv::Mat p = (cv::Mat_<double>(3,1) << key1.x, key1.y, 1);
-				cv::Mat qT = (cv::Mat_<double>(1,3) << key2.x, key2.y, 1);
-				cv::Mat result = qT*F*p;
-				double resultd = abs(result.at<double> (0,0));
-				if (resultd > 100)
-				{
-					continue;
-				}*/
-				
+			{		
 				int px = key1.x;
 				int py = key1.y;
 				int nx = key2.x;
@@ -474,10 +420,6 @@ void MatchSIFT(int id)
 				}
 
 				// Triangulation using P and feature correspondence
-				// prevP
-				// cameraParam->P
-				// prevPts
-				// nextPts
 				cv::Mat prevP = siftm[id].prevP;
 				cv::Mat A = (cv::Mat_<double>(4,4) <<	
 					prevP.at<double>(2,0)*px-prevP.at<double>(0,0), prevP.at<double>(2,1)*px-prevP.at<double>(0,1), prevP.at<double>(2,2)*px-prevP.at<double>(0,2), prevP.at<double>(2,3)*px-prevP.at<double>(0,3),
@@ -493,23 +435,10 @@ void MatchSIFT(int id)
 				double oz = threeDcoord.at<double>(2,0)/threeDcoord.at<double>(3,0);
 				if ( abs(ox) < 10 && abs(oy) < 10 && abs(oz) < 10)
 				{
-					output << cameraPose->pose.x << "\t" << cameraPose->pose.y << "\t" << cameraPose->pose.z << "\t" << cameraPose->pose.yaw << "\t" << cameraPose->pose.pitch << "\t" << cameraPose->pose.roll << "\t" ;
-					output << px << "\t" << py << "\t" << nx << "\t" << ny << "\t";
-					output << prevP.at<double>(0,0) << "\t" << prevP.at<double>(0,1) << "\t" << prevP.at<double>(0,2) << "\t" << prevP.at<double>(0,3) << "\t";
-					output << prevP.at<double>(1,0) << "\t" << prevP.at<double>(1,1) << "\t" << prevP.at<double>(1,2) << "\t" << prevP.at<double>(1,3) << "\t";
-					output << prevP.at<double>(2,0) << "\t" << prevP.at<double>(2,1) << "\t" << prevP.at<double>(2,2) << "\t" << prevP.at<double>(2,3) << "\t";
-
-					output << nextP.at<double>(0,0) << "\t" << nextP.at<double>(0,1) << "\t" << nextP.at<double>(0,2) << "\t" << nextP.at<double>(0,3) << "\t";
-					output << nextP.at<double>(1,0) << "\t" << nextP.at<double>(1,1) << "\t" << nextP.at<double>(1,2) << "\t" << nextP.at<double>(1,3) << "\t";
-					output << nextP.at<double>(2,0) << "\t" << nextP.at<double>(2,1) << "\t" << nextP.at<double>(2,2) << "\t" << nextP.at<double>(2,3) << "\t";
-					output << A.at<double>(0,0) << "\t" << A.at<double>(0,1) << "\t" << A.at<double>(0,2) << "\t" << A.at<double>(0,3) << "\t";
-					output << A.at<double>(1,0) << "\t" << A.at<double>(1,1) << "\t" << A.at<double>(1,2) << "\t" << A.at<double>(1,3) << "\t";
-					output << A.at<double>(2,0) << "\t" << A.at<double>(2,1) << "\t" << A.at<double>(2,2) << "\t" << A.at<double>(2,3) << "\t";
-					output << A.at<double>(3,0) << "\t" << A.at<double>(3,1) << "\t" << A.at<double>(3,2) << "\t" << A.at<double>(3,3) << "\t";
-					output << ox << "\t" << oy << "\t" << oz << "\t";
-					output << (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+0) << "\t";
-					output << (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+1) << "\t";
-					output << (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+2) << endl;
+					int b = (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+0);
+					int g = (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+1);
+					int r = (int)CV_IMAGE_ELEM(resize, uchar, ny, nx*resize->nChannels+2);
+					Output3D(ox,oy,oz,b,g,r);
 				}
 			}
 		}

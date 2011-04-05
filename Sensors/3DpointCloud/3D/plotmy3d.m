@@ -4,47 +4,38 @@ clc
 
 threeD = load('output.txt');
 
-pose.x = threeD(:,1);
-pose.y = threeD(:,2);
-pose.z = threeD(:,3);
-pose.yaw = threeD(:,4);
-pose.pitch = threeD(:,5);
-pose.roll = threeD(:,6);
-K = [-686.869 0 297.687
-     0 687.997 218.456
-     0 0 1];
-px = threeD(:,7);
-py = threeD(:,8);
-nx = threeD(:,9);
-ny = threeD(:,10);
-prevP = threeD(:,11:22);
-nextP = threeD(:,23:34);
-A = threeD(:,35:end-3);
-
-prevPM = [prevP(1,1:4); prevP(1,5:8); prevP(1,9:12)];
-nextPM = [nextP(1,1:4); nextP(1,5:8); nextP(1,9:12)];
+% pose.x = threeD(:,1);
+% pose.y = threeD(:,2);
+% pose.z = threeD(:,3);
+% pose.yaw = threeD(:,4);
+% pose.pitch = threeD(:,5);
+% pose.roll = threeD(:,6);
+% K = [-686.869 0 297.687
+%      0 687.997 218.456
+%      0 0 1];
+% px = threeD(:,7);
+% py = threeD(:,8);
+% nx = threeD(:,9);
+% ny = threeD(:,10);
+% prevP = threeD(:,11:22);
+% nextP = threeD(:,23:34);
+% A = threeD(:,35:end-3);
+% 
+% prevPM = [prevP(1,1:4); prevP(1,5:8); prevP(1,9:12)];
+% nextPM = [nextP(1,1:4); nextP(1,5:8); nextP(1,9:12)];
 % AM = [A(1,1:4); A(1,5:8); A(1,9:12); A(1,13:end)];
 % [V,D] = eig(AM)
 % x0 = V(:,4)
 % AM*x0
 % x0./x0(4)
 
-x = threeD(:,51);
-y = threeD(:,52);
-z = threeD(:,53);
+x = threeD(:,1);
+y = threeD(:,2);
+z = threeD(:,3);
 
-B = threeD(:,54);
-G = threeD(:,55);
-R = threeD(:,56);
-
-a = -pi/2;
-b = 0;
-c = pi/2;
-Trc = [0 0 0.5]';
-Rrc = [cos(a)*cos(b), cos(a)*sin(b)*sin(c)-sin(a)*cos(c), cos(a)*sin(b)*cos(c)+sin(a)*sin(c)
-    sin(a)*cos(b), sin(a)*sin(b)*sin(c)+cos(a)*cos(c), sin(a)*sin(b)*cos(c)-cos(a)*sin(c)
-    -sin(b),	   cos(b)*sin(c),					   cos(b)*cos(c)					 ];
-RTrc = [Rrc Trc];
+B = threeD(:,4);
+G = threeD(:,5);
+R = threeD(:,6);
 
 figure(1)
 hold on
