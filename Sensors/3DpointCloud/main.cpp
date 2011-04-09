@@ -42,6 +42,7 @@ using namespace std;
 #define DRAWBOX false
 #define PLOT_ORIGIN	false
 #define SAVE_CAPTURE true
+#define SAVE_P true
 
 char camName[]="Global\\CamMappingObject";
 HANDLE hMapFile=NULL;
@@ -332,8 +333,9 @@ void Output3D(double x, double y, double z, int b, int g, int r)
 	output << A.at<double>(1,0) << "\t" << A.at<double>(1,1) << "\t" << A.at<double>(1,2) << "\t" << A.at<double>(1,3) << "\t";
 	output << A.at<double>(2,0) << "\t" << A.at<double>(2,1) << "\t" << A.at<double>(2,2) << "\t" << A.at<double>(2,3) << "\t";
 	output << A.at<double>(3,0) << "\t" << A.at<double>(3,1) << "\t" << A.at<double>(3,2) << "\t" << A.at<double>(3,3) << "\t";*/
-	output << x << "\t" << y << "\t" << z << "\t";
-	output << b << "\t" << g << "\t" << r << endl;
+	output.precision(6);
+	output << scientific << x << " " << y << " " << z << " ";
+	output << b << " " << g << " " << r << endl;
 }
 
 void MatchSIFT(int id)
@@ -465,6 +467,7 @@ void RunRealtime()
 		}		
 	}	
 
+	int imageCount = 0;
 	char filename[300];
 	while(running)
 	{	
@@ -515,9 +518,25 @@ void RunRealtime()
 			{
 				if (SAVE_CAPTURE)
 				{
-					sprintf(filename, "3D\\img_%05d.jpg", frameNum);
+					sprintf(filename, "3D\\visualize\\%08d.jpg", imageCount);
 					cvSaveImage(filename, resize);
 				}
+				if (SAVE_P)
+				{
+					sprintf(filename, "3D\\txt\\%08d.txt", imageCount);
+					ofstream poutput;
+					poutput.open (filename, ios::out);
+					/*CONTOUR
+					P[0][0] P[0][1] P[0][2] P[0][3]
+					P[1][0] P[1][1] P[1][2] P[1][3]
+					P[2][0] P[2][1] P[2][2] P[2][3]*/
+					poutput << "CONTOUR" << endl;
+					poutput << nextP.at<double>(0,0) << "\t" << nextP.at<double>(0,1) << "\t" << nextP.at<double>(0,2) << "\t" << nextP.at<double>(0,3) << endl;
+					poutput << nextP.at<double>(1,0) << "\t" << nextP.at<double>(1,1) << "\t" << nextP.at<double>(1,2) << "\t" << nextP.at<double>(1,3) << endl;
+					poutput << nextP.at<double>(2,0) << "\t" << nextP.at<double>(2,1) << "\t" << nextP.at<double>(2,2) << "\t" << nextP.at<double>(2,3) << endl;
+					poutput.close();
+				}
+				imageCount++;
 				gotDisparity = false;
 				if (USE_ANGLE_SECTION)
 				{
